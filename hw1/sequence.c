@@ -28,6 +28,8 @@ long* Generate_2p3q_Seq(int less_than, int* seq_size){
   return seq_ptr; //return the sequence pointer
 }
 
+//check is n is in the sequence by checking the last number
+
 int seq_util(int less_than, long* seq_ptr, int len){
    
   int num_elements = 0, next_2 = 0, next_3 = 0, pt2 = 0, pt3 = 0;

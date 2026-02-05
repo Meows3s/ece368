@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "sequence.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 int seq_util(int, long*, int);
 
@@ -14,7 +14,7 @@ int main(){
 
   int test = 20;
 
-  Generate_2p3q_Seq(40, &test);
+  Generate_2p3q_Seq(100, &test);
 
   return 0;
 }
@@ -32,7 +32,7 @@ long* Generate_2p3q_Seq(int less_than, int* seq_size){
 
 int seq_util(int less_than, long* seq_ptr, int len){
    
-  int num_elements = 0, next_2 = 0, next_3 = 0, pt2 = 0, pt3 = 0;
+  int index = 0, next_2 = 0, next_3 = 0, pt2 = 0, pt3 = 0;
   long* seq = calloc((len == -1 ? less_than + 2 : len), sizeof(long)); //allocate extra memory for an initial count. kinda jank ngl
   seq[0] = 1; //set first element
 
@@ -40,29 +40,28 @@ int seq_util(int less_than, long* seq_ptr, int len){
   while(next_2 < less_than && next_3  < less_than){
     next_2 = seq[pt2] * 2;
     next_3 = seq[pt3] * 3;
-    num_elements++; //keep track of the number of elements and current seq index
+    index++; //keep track of the number of elements and current seq index
 
     if(next_2 < next_3){//if 2 is less than 3, pick 2 and increment its index
-      seq[num_elements] = next_2;
+      seq[index] = next_2;
       pt2++;
-      if(DEBUG) printf("%d (next2)\n", next_2);
-    }else if(next_3 < next_2){//if 3 is less than 2, pick 3 and increment its index
-      seq[num_elements] = next_3;
+      if(DEBUG) printf("%d (next2) at index %d pt2 %d\n", next_2, index, pt2);
+    }else if(next_2 > next_3){//if 3 is less than 2, pick 3 and increment its index
+      seq[index] = next_3;
       pt3++;
-      if(DEBUG) printf("%d (next3)\n", next_3);
-    }else{//if elements are the same, just pick 2 and increment both indicies
-      seq[num_elements] = next_2;
+      if(DEBUG) printf("%d (next3) at index %d pt3 %d\n", next_3, index, pt2);
+    }else{ //if they are equal, don't add this to the list and increment one of the indicies
       pt2++;
-      pt3++;
+      index--;
     }
   }
-  num_elements--; //subtract off the last one because it will be too large
+  index++; //increment 1 more time to include zero-th element
 
-  if(DEBUG) printf("final number of elements is %d\n", num_elements);
+  if(DEBUG) printf("final number of elements is %d\n", index);
   
   if(len == -1){//if we are in counting mode
     free(seq); //free temp array
-    return num_elements; //return number of elements
+    return index; //return number of elements
   }else{
       seq_ptr = seq; //otherwise set the pointer passed to the counting array
       free(seq); //free the temp counting array

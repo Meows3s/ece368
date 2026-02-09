@@ -23,7 +23,7 @@ long* Generate_2p3q_Seq(int less_than, int* seq_size){
   seq_size = calloc(0, sizeof(int)); //create a pointer to point to the length of the sequence
   *seq_size = seq_util(less_than, (long*)1, -1); //count the number of elements in the sequence
   long* seq_ptr = calloc(*seq_size, sizeof(long)); //create a pointer to point to the sequence
- 
+
   seq_util(less_than, seq_ptr, *seq_size); //set the sequence pointer to an array with those elements
   return seq_ptr; //return the sequence pointer
 }

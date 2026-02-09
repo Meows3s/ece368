@@ -3,31 +3,83 @@
 #include "shell_list.h"
 
 #define DEBUG 1
+
 int getList(Node*, FILE*);
 Node* getNextNode(Node*);
-long getLong(FILE*);
+int List_Save_To_File(char*, Node*);
+Node* List_Load_From_File(char*, int*);
 
+int main(){
+
+  int status = 0;
+  char* filename = "examples/15.b"; //open file
+  Node* list = List_Load_From_File(filename, &status);
+  List_Save_To_File("out.b", list);
+  return 0;
+}
+
+Node* List_Shellsort(Node* list, long* n_comp){
+  return 0;
+}
 
 Node* List_Load_From_File(char* filename, int* status){
-  
-  FILE* fptr = fopen(filename, "r");
-  if(fptr == NULL){return NULL;}
 
+  status = calloc(1, sizeof(int)); //initialize status
+  
+  FILE* fptr = fopen(filename, "rb");
+
+  if(fptr == NULL){ //if the file fails to open
+    *status = -1; //fail
+    return NULL;
+  }else{
+    *status = 1; //success
+  }
+
+  if(DEBUG)printf("file opened\n");
+  
   Node* head = calloc(1, sizeof(Node)); //create head of list
-  getList(head, fptr); //create the rest of the list (simply)
- 
+  getList(getNextNode(head), fptr); //create the rest of the list (simply)
+  
   fclose(fptr);
 
   return head; //return the list
 }
 
+int List_Save_To_File(char* filename, Node* head){
+  FILE* fptr = fopen(filename, "wb");
+  if(fptr == NULL){return -1;} //return if file fails to open
+  
+  int numElements = 0;
+  Node* thisNode = head->next;
+  
+  do{
+    if(DEBUG)printf("wrote %ld to file.\n", thisNode->value);
+
+    fwrite(&thisNode->value, sizeof(long), 1, fptr); //write the contents of this node to the file
+    thisNode = thisNode->next; //we are NOT asked to free the list here, so just move to the next node
+    numElements++;
+  }while(thisNode->next != NULL);
+
+  if(DEBUG)printf("wrote %d elements to file.\n", numElements);
+
+  return numElements;
+}
+
 //recursive function to generate the list
 int getList(Node* thisNode, FILE* fptr){
-  if(feof(fptr)){return 1;}//if we are at the end of the file, return
-  long thisLong = getLong(fptr);
+  long thisLong = 0;
+
+  if(fread(&thisLong, sizeof(long), 1, fptr) != 1) {
+    thisNode = NULL;
+    return 0;
+  }
+
   if(DEBUG) printf("long read: %ld\n", thisLong);
   thisNode->value = thisLong;
-  return getList(getNextNode(thisNode), fptr);
+
+  //allocate next node and recurse
+  thisNode->next = calloc(1, sizeof(Node));
+  return getList(thisNode->next, fptr);
 }
 
 //takes in the current node and sets its next pointer to the next node
@@ -36,8 +88,3 @@ Node* getNextNode(Node* thisNode){
   return thisNode->next;
 }
 
-//get the next long from the file
-long getLong(FILE* fptr){
-  long toReturn;
-  return ( fscanf(fptr, "%ld", &toReturn) ? toReturn : -1 );
-}

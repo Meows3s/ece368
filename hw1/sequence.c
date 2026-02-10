@@ -2,22 +2,10 @@
 #include <stdio.h>
 #include "sequence.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 int seq_util(int, long*, int);
-
 long* Generate_2p3q_Seq(int, int*);
-
-int main(){
-  
-  if(DEBUG) printf("starting program...\n");
-
-  int test = 20;
-
-  Generate_2p3q_Seq(100, &test);
-
-  return 0;
-}
 
 long* Generate_2p3q_Seq(int less_than, int* seq_size){
   seq_size = calloc(0, sizeof(int)); //create a pointer to point to the length of the sequence

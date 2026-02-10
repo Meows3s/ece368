@@ -3,38 +3,52 @@
 #include "shell_array.h"
 #include "sequence.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 long* Array_Load_From_File(char*, int*);
 int Array_Save_To_File(char*, long*, int);
 int getFileLength(FILE*);
 
-void Array_Shellsort(long* array, int size, long* n_comp){
-  n_comp = calloc(1, sizeof(long)); //init n_comp
-  
-  //args: less than, *n_elements
-  int numK = 0;
-  long* kVals = Generate_2p3q_Seq(size, &numK);
 
-  
-/*sorted = false
-last_exchange = n
-while (not sorted)
-sorted = true
-last_element = last_exchange - 1
-for i = 1 to last_element
-if A[i - 1] > A[i]
-exchange A[i-1] and A[i]
-last_exchange = i
-sorted = false*/
+void sortKsubseq(long* toSort, int n, int start, int k, long* n_comp){
+  long count = 0;
+  for(long i = start; i < n; i += k){ //count the number of subarrays, increment by a
+    count++;
+  }  
+  for(long i = 0; i < count - 1; i++){
+    for (long j = 0; j < count - i - 1; j++){
 
-  int sorted = 0; //start unsorted
-  lastSwap = numK;
-  while(!sorted){
-    sorted = 1;
-    array[numK-1] = array[lastSwap] - 1;
+      long idx1 = start + j * k;
+      long idx2 = start + (j + 1) * k;
+      
+      (*n_comp)++; //increment compare
+
+      if(toSort[idx1] < toSort[idx2]){//swap
+        
+        long temp = toSort[idx1];
+        toSort[idx1] = toSort[idx2];
+        toSort[idx2] = temp;
+      }
+    }
   }
+}
+
+void everyKsort(long* toSort, int n, long* kVals, int numKs, long* n_comp){
+  for (int i = 0; i < numKs; i++){
+    if(DEBUG)printf("sorting for this kval %ld\n", kVals[i]);
+    for(int start = 0; start < kVals[i] && start < n; start++){ //for every k
+      sortKsubseq(toSort, n, start, kVals[i], n_comp); //sort that subsequence according to k
+    }
+  }    
+}
+
+void Array_Shellsort(long* array, int size, long* n_comp){
+  int numKs = 0;
+  long* kVals = Generate_2p3q_Seq(size, &numKs);
+ 
+  if(DEBUG)printf("starting sorting of array size %d and numKs %d\n", size, numKs);
   
+  everyKsort(array, size, kVals, numKs, n_comp); //run ksort for every value of k in this array
 }
 
 long* Array_Load_From_File(char* filename, int* size){

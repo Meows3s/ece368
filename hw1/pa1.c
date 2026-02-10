@@ -1,13 +1,69 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "shell_list.h"
+
 #include "shell_array.h"
+#include "shell_list.h"
+#include "sequence.h"
 
+#define DEBUG 1
 
+void dump(long*, int);
+void listDump(Node*);
 
-int main(){
+int main(int argc, char** argv){
 
-  List_Load_From_File(filename);
+  char* flag = argv[1]; //second char of flag bc first one is the dash
+  char* fileIn = argv[2]; //zero is the program name
+  char* fileOut = argv[3];
+  
+  if(flag[1] == 'a'){//use array method
+    int numArray = 0;
+    long numComp = 0;
+    long* arrayToSort = Array_Load_From_File(fileIn, &numArray); //load array
+    
+    if(DEBUG)dump(arrayToSort, numArray);
+
+    Array_Shellsort(arrayToSort, numArray, &numComp); //sort array
+    
+    if(DEBUG)dump(arrayToSort, numArray);
+
+    Array_Save_To_File(fileOut, arrayToSort, numArray);
+    printf("%ld", numComp);
+
+  }else if(flag[1] == 'l'){//use list method
+    
+    Node* head = calloc(1, sizeof(Node));
+    int status = 0;
+    long numComp = 0;
+
+    List_Load_From_File(fileIn, &status);
+
+    if(DEBUG)listDump(head);
+
+    List_Shellsort(head, &numComp);
+
+    if(DEBUG)listDump(head);
+
+    List_Save_To_File(fileOut, head);
+    
+  }else{
+    printf("incorrect arguments.\n");
+  }
 
   return 0;
+}
+
+void dump(long* array, int size){
+  printf("starting array dump:\n");
+  for(int i = 0; i < size; i++){
+    printf("element at index %d is %ld\n", i, array[i]);
+  }
+}
+
+void listDump(Node* head){
+  printf("starting list dump:\n");
+  while(head != NULL){
+    printf("%ld\n", head->value);
+    head = head->next;
+  }
 }

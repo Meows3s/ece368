@@ -9,23 +9,11 @@ Node* getNextNode(Node*);
 int List_Save_To_File(char*, Node*);
 Node* List_Load_From_File(char*, int*);
 
-int main(){
-
-  int status = 0;
-  char* filename = "examples/15.b"; //open file
-  Node* list = List_Load_From_File(filename, &status);
-  List_Save_To_File("out.b", list);
-  return 0;
-}
-
 Node* List_Shellsort(Node* list, long* n_comp){
-  return 0;
+  return list;
 }
 
 Node* List_Load_From_File(char* filename, int* status){
-
-  status = calloc(1, sizeof(int)); //initialize status
-  
   FILE* fptr = fopen(filename, "rb");
 
   if(fptr == NULL){ //if the file fails to open
@@ -38,10 +26,19 @@ Node* List_Load_From_File(char* filename, int* status){
   if(DEBUG)printf("file opened\n");
   
   Node* head = calloc(1, sizeof(Node)); //create head of list
-  getList(getNextNode(head), fptr); //create the rest of the list (simply)
+  //getList(getNextNode(head), fptr); //create the rest of the list (simply)
   
-  fclose(fptr);
+  long thisLong = 0;
+  while(fread(&thisLong, sizeof(long), 1, fptr) == 1){
+    if(DEBUG)printf("read %ld\n", thisLong);
+    head->value = thisLong;
+    head->next = calloc(1, sizeof(Node*));
+    head = head->next;
+  }
 
+  if(DEBUG)printf("done reading from file\n");
+
+  fclose(fptr);
   return head; //return the list
 }
 
@@ -65,6 +62,7 @@ int List_Save_To_File(char* filename, Node* head){
   return numElements;
 }
 
+/*
 //recursive function to generate the list
 int getList(Node* thisNode, FILE* fptr){
   long thisLong = 0;
@@ -86,5 +84,4 @@ int getList(Node* thisNode, FILE* fptr){
 Node* getNextNode(Node* thisNode){
   thisNode->next = calloc(1, sizeof(Node));
   return thisNode->next;
-}
-
+}*/

@@ -5,8 +5,8 @@
 #include "shell_list.h"
 #include "sequence.h"
 
-#define DEBUG 1
-
+#define DEBUG 0
+void freeList(Node*);
 void dump(long*, int);
 void listDump(Node*);
 
@@ -28,15 +28,14 @@ int main(int argc, char** argv){
     if(DEBUG)dump(arrayToSort, numArray);
 
     Array_Save_To_File(fileOut, arrayToSort, numArray);
-    printf("%ld", numComp);
+    printf("%ld\n", numComp);
 
   }else if(flag[1] == 'l'){//use list method
     
-    Node* head = calloc(1, sizeof(Node));
     int status = 0;
     long numComp = 0;
 
-    List_Load_From_File(fileIn, &status);
+    Node* head = List_Load_From_File(fileIn, &status);
 
     if(DEBUG)listDump(head);
 
@@ -46,11 +45,23 @@ int main(int argc, char** argv){
 
     List_Save_To_File(fileOut, head);
     
+    freeList(head); //free the linked list
+    printf("%ld\n", numComp);
+
   }else{
     printf("incorrect arguments.\n");
   }
 
   return 0;
+}
+
+
+void freeList(Node* head){
+  while(head->next != NULL){
+    Node* next = head->next;
+    free(head);
+    head = next;
+  }
 }
 
 void dump(long* array, int size){
@@ -62,7 +73,7 @@ void dump(long* array, int size){
 
 void listDump(Node* head){
   printf("starting list dump:\n");
-  while(head != NULL){
+  while(head->next != NULL){
     printf("%ld\n", head->value);
     head = head->next;
   }

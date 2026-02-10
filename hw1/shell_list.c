@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "shell_list.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 int getList(Node*, FILE*);
 Node* getNextNode(Node*);
@@ -10,6 +10,8 @@ int List_Save_To_File(char*, Node*);
 Node* List_Load_From_File(char*, int*);
 
 Node* List_Shellsort(Node* list, long* n_comp){
+  //I admit that I did not manage my time well and was not able to complete this function. I guess I will know to start earlier next time.
+  *n_comp = (list->value % 1000)*(list->value % 1000) ;//random value for testing
   return list;
 }
 
@@ -23,23 +25,24 @@ Node* List_Load_From_File(char* filename, int* status){
     *status = 1; //success
   }
 
+
+  Node* head = calloc(1, sizeof(Node));
+  Node* toReturn = head;
   if(DEBUG)printf("file opened\n");
-  
-  Node* head = calloc(1, sizeof(Node)); //create head of list
-  //getList(getNextNode(head), fptr); //create the rest of the list (simply)
   
   long thisLong = 0;
   while(fread(&thisLong, sizeof(long), 1, fptr) == 1){
-    if(DEBUG)printf("read %ld\n", thisLong);
     head->value = thisLong;
+    if(DEBUG)printf("read %ld\n", head->value);
     head->next = calloc(1, sizeof(Node*));
     head = head->next;
   }
+  head = NULL;
 
   if(DEBUG)printf("done reading from file\n");
 
   fclose(fptr);
-  return head; //return the list
+  return toReturn; //return the list
 }
 
 int List_Save_To_File(char* filename, Node* head){
@@ -47,15 +50,14 @@ int List_Save_To_File(char* filename, Node* head){
   if(fptr == NULL){return -1;} //return if file fails to open
   
   int numElements = 0;
-  Node* thisNode = head->next;
   
-  do{
-    if(DEBUG)printf("wrote %ld to file.\n", thisNode->value);
+  while(head->next != NULL){
+    if(DEBUG)printf("wrote %ld to file.\n", head->value);
 
-    fwrite(&thisNode->value, sizeof(long), 1, fptr); //write the contents of this node to the file
-    thisNode = thisNode->next; //we are NOT asked to free the list here, so just move to the next node
+    fwrite(&(head->value), sizeof(long), 1, fptr); //write the contents of this node to the file
+    head = head->next; //we are NOT asked to free the list here, so just move to the next node
     numElements++;
-  }while(thisNode->next != NULL);
+  }
 
   if(DEBUG)printf("wrote %d elements to file.\n", numElements);
 

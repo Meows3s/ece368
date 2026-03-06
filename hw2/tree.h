@@ -1,3 +1,9 @@
+#define LEAF 'L'
+#define VERT 'V'
+#define HORIZ 'H'
+
+#define DEBUG 1
+
 typedef struct tree_{ //define the binary tree type
   char div;
 
@@ -9,4 +15,9 @@ typedef struct tree_{ //define the binary tree type
   struct tree_* right;
 }tree;
 
-tree* loadTree(char*);
+/*loaders and writers*/
+tree* loadPreorder(char*);
+int writePostorder(tree*, char*);
+
+/*util stuff*/
+int freeTree(tree*);

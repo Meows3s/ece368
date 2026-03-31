@@ -1,10 +1,11 @@
 #include "modebug.h"
 #include "hbt.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 
-#define EXIT_FAILURE 0
-#define EXIT_SUCCESS 1
+//#define EXIT_FAILURE 0
+//#define EXIT_SUCCESS 1
 
 //conversions
 int treeBtoC(char* inf, char* outf);
@@ -17,3 +18,4 @@ int isBST(Tnode*);
 
 //build
 int buildTree(char*, Tnode*);
+void freeTree(Tnode*);

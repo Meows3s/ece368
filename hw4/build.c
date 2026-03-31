@@ -15,10 +15,14 @@ int buildTree(char* inputFile, Tnode* root){
     if(DEBUG)printf("read value: %d and op %c\n", key, op);
   }
 
-
-
   fclose(inf);
  return EXIT_SUCCESS;//success
 }
 
-
+void freeTree(Tnode* root){
+  if(root == NULL){return;}
+  freeTree(root->left);
+  freeTree(root->right);
+  free(root);
+  return;
+}

@@ -38,7 +38,7 @@ int build(char* inputFile, char* outputFile){
 int evaluate(char* inputFile){
   if(!isGoodFile(inputFile, "rb")){return EXIT_FAILURE;}
   
-  Tnode* root;
+  Tnode* root = calloc(1, sizeof(Tnode));
   buildTree(inputFile, root); //make a tree to evaluate
 
   int isGoodF = isGoodFile(inputFile, "rb"); //status: working
@@ -46,6 +46,8 @@ int evaluate(char* inputFile){
   int isBal = isBalanced(root); //status: should be working
 
   printf("%d,%d,%d\n", isGoodF, isBst, isBal);
+  
+  freeTree(root);
 
   return isGoodF ? EXIT_SUCCESS : EXIT_FAILURE; //only return success if the file opening succeeded
 }

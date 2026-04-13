@@ -1,44 +1,58 @@
 #include "defs.h"
 
 int balancedHelper(Tnode*);
-int isBSTHelper(Tnode*);
+int isBSTHelper(FILE*, int, int);
 
 //returns 1 if the tree is height balanced, returns 0 otherwise
-int isBalanced(Tnode *root){
+int isBalanced(char* filename){
+  FILE* fptr = fopen(filename, "r");
+  if(fptr == NULL){return 0;} //check failed
   
-  int depthDelta = balancedHelper(root);
-  depthDelta = depthDelta * depthDelta; //square delta to remove negatives
-  if(depthDelta <= 1){
-    return 0; //succeed!
-  }
-  return 0; //fail
+  
+
+  fclose(fptr);
+  return 1; //fix
 }
 
 //recursive helper func
-int balancedHelper(Tnode *thisNode){
-  if(thisNode == NULL){return -1;}
+int balancedHelper(Tnode* thisNode){
   
-  int leftDepth = balancedHelper(thisNode->left) + 1;
-  int rightDepth = balancedHelper(thisNode->right) + 1;
-
-  //return the difference between the depth of the right and left branches
-  return leftDepth - rightDepth;
 }
 
-//check if the tree given is a valid BST; that is the left node is always smaller than the right
-int isBST(Tnode* root){
-  return isBSTHelper(root);
+//check if the FILE (not tree) given is a valid BST; that is the left node is always smaller than the right
+int isBST(char* filename){
+  FILE* fptr = fopen(filename, "r");
+  if(fptr == NULL){return 0;} //check failed
+  
+  isBSTHelper(fptr, 0, 0); //start recursive helper
+
+  fclose(fptr);
+  return 1; //succeed
 }
 
 //helper to determine if tree is a BST
-int isBSTHelper(Tnode* root){
-  //check self, check left and right, done
-  if(root->left == NULL && root->right == NULL){return root->key;} //bottom node, not a failure
-  int pass = (root->left->key < root->key && root->key < root->right->key);
-  return pass * isBSTHelper(root->left) * isBSTHelper(root->right); //only 1 if all levels pass
+int isBSTHelper(FILE* fptr, int dir, int parentVal){
+  int leftSide = 1, rightSide = 1;
+  int key = 0, balance = 0;
+  int pass = fscanf(fptr, "%d %d\n", &key, &balance);
+
+  //if we are at a branch
+  if(balance == BRANCH){
+
+    leftSide = isBSTHelper(fptr + STEP, 0, key);
+    rightSide = isBSTHelper(fptr + 2*STEP, 1, key);
+
+  //if we are at a leaf
+  }else if(balance == LEAF){
+    if(!dir){ //left leaf
+      return parentVal >= key; //true if previous node is >= this one
+    }else{ //right leaf
+      return parentVal < key; //true if previous node is < this one
+    }
+  }
+  
+  return leftSide * rightSide; //returns zero if either side failed (whole tree fails)
 }
-
-
 
 int isGoodFile(char* filename, char* mode){
   FILE* fptr = fopen(filename, mode);

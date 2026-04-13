@@ -30,24 +30,22 @@ int main(int argc, char** argv){
 int build(char* inputFile, char* outputFile){
   if(!isGoodFile(inputFile, "rb") || !isGoodFile(outputFile, "wb")){return EXIT_FAILURE;}
   
+  
 
   return EXIT_SUCCESS;
 }
 
-//do some checks on the input tree
+
+
+//do some checks on the input tree FILE (not actually a tree)
 int evaluate(char* inputFile){
   if(!isGoodFile(inputFile, "rb")){return EXIT_FAILURE;}
-  
-  Tnode* root = calloc(1, sizeof(Tnode));
-  buildTree(inputFile, root); //make a tree to evaluate
 
   int isGoodF = isGoodFile(inputFile, "rb"); //status: working
-  int isBst = isBST(root); //status: probably broken
-  int isBal = isBalanced(root); //status: should be working
+  int isBst = isBST(inputFile); //status: probably broken
+  int isBal = isBalanced(inputFile); //status: should be working
 
   printf("%d,%d,%d\n", isGoodF, isBst, isBal);
   
-  freeTree(root);
-
   return isGoodF ? EXIT_SUCCESS : EXIT_FAILURE; //only return success if the file opening succeeded
 }

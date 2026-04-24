@@ -1,14 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "node.h"
+#include "queue.h"
 
 #define DEBUG 1
-
-//node stuff
-#define BRIDGE 1
-#define NOBRIDGE 0
-#define SEEN 1
-#define UNSEEN 0
 
 //file stuff
 #define OPEN_FLAG "r+"
@@ -21,9 +16,19 @@ node* newNode();
 
 void freeGraph(graph*);
 void freeNode(node*);
+void freeQueue(queue*);
 
 void dumpGraph(graph*);
 void dumpNode(node*);
+void dumpQueue(queue*);
+
+
+//queue.c
+queue* newQueue();
+void enqueue(queue*, node*);
+node* dequeue(queue*);
+int isQueueEmpty(queue*);
+
 
 //pa5.c
 

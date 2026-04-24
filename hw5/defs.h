@@ -29,6 +29,10 @@ void enqueue(queue*, node*);
 node* dequeue(queue*);
 int isQueueEmpty(queue*);
 
+//explore.c
+void shortestFromAny(graph*);
+void shortestFromRow(graph*, int);
+void traverse(graph*, queue*);
 
 //pa5.c
 

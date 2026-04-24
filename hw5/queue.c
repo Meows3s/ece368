@@ -6,15 +6,19 @@ queue* newQueue(){
   return toReturn;
 }
 
-//enqueue, always add the node to the end of the queue
+//enqueue: since this is a priority queue, sort it by distance to the source
 void enqueue(queue* Qhead, node* graphData){
-  queue* toAppend = newQueue(); //make a new queue node
-  toAppend->data = graphData; //put the graph data in the queue node
+  queue* toInsert = newQueue(); //make a new queue node
+  toInsert->data = graphData; //put the graph data in the queue node
   
-  queue* lastQNode = Qhead->last; //put the new queue node at the end of the queue
-  lastQNode->next = toAppend;
-  
-  Qhead->next = toAppend; //update the last pointer
+  queue* addAfter = Qhead->next; //start at first node
+  while(toInsert->data->dist > addAfter->data->dist){
+    addAfter = addAfter->next; //increment
+  }
+  //rearrange the queue to insert the node at the correct location
+  queue* addBefore = addAfter->next;
+  addAfter->next = toInsert;
+  toInsert->next = addBefore;
 }
 
 //dequque, return the pointer to the node in the queue node at the front
@@ -23,7 +27,6 @@ node* dequeue(queue* Qhead){
   
   queue* newHead = Qhead->next; //move the head forward one
   free(Qhead->next);
-  free(Qhead->last);
   Qhead = newHead; //update head pointer
   
   return data; //return the data requested

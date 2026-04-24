@@ -17,6 +17,8 @@ node* newNode(){
   toReturn->bridge = calloc(1, 4 * sizeof(int));
   toReturn->pos = calloc(1, 2 * sizeof(int));
   toReturn->seen = UNSEEN; //initialize to unseen
+  toReturn->nbor = calloc(1, 4 * sizeof(node*));
+
   return toReturn;
 }
 
@@ -57,7 +59,7 @@ void freeGraph(graph* G){
 void freeNode(node* N){
   free(N->bridge);
   free(N->pos);
-  free(N->fromNode);
+  free(N->closest);
   free(N);
 }
 

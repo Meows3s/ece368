@@ -15,8 +15,12 @@
 typedef struct node_{
   int* bridge; //4 possible bridge connections
   int* pos; //x and y coordinates of the node
-  int* fromNode; //the previous node with shortest distance used to get to this node
   int seen;
+  
+  struct node_** nbor; //array of node neighbors (oh no)
+  
+  struct node_* closest; //the previous node with shortest distance used to get to this node
+  int dist; //dist to the node above
 }node;
 
 

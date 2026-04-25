@@ -15,7 +15,8 @@ void shortestFromAny(graph* G){
   for(int r = 0; r < G->nrow; r++){
     node* nodeToQueue = G->data[r][0];
     enqueue(Qhead, nodeToQueue);
-  }
+  }  
+
   traverse(G, Qhead);
 }
 
@@ -28,25 +29,43 @@ void shortestFromRow(graph* G, int startRow){
 
 void traverse(graph* G, queue* Qhead){
   
+  if(DEBUG){
+    printf("\nadded these items to the queue to start:\n");
+    dumpQueue(Qhead);
+  }
+
   //while there are still nodes to explore
-  while(!isQueueEmpty(Qhead)){
+  //while(!isQueueEmpty(Qhead->next)){
     //get the node with the shortest distance
     node* currentNode = dequeue(Qhead);
     
-    if(currentNode->pos[1] == 0){ //left edge case
-      
-    }else if(currentNode->pos[1] == G->ncol){ //right edge case
-
-    }else if(currentNode->pos[0] == 0){ //top edge case
-
-    }else if(currentNode->pos[0] == G->nrow){ //bottom edge case
-      
-    }else{ //not on edge, queue all
-      
+    if(DEBUG){
+      printf("dequeued node:");
+      dumpNode(currentNode);
     }
 
-  }
 
+    enqueueNbors(Qhead, currentNode);
+    
+    dumpQueue(Qhead);
+
+  //}
+}
+
+//if a neighbor is unvisited and not NULL, add it to the queue
+void enqueueNbors(queue* Qhead, node* N){
+  for(int n = 0; n < 3; n++){
+    node* thisNbor = N->nbor[n];
+
+    if(thisNbor != NULL){
+      enqueue(Qhead, thisNbor);
+      
+      if(DEBUG){
+        printf("added below node to queue:\n");
+        dumpNode(thisNbor);
+      } 
+    }
+  }
 }
 
 int buildPath(graph* G){

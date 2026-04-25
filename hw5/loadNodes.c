@@ -1,15 +1,14 @@
 #include "defs.h"
 
-int getNodesFromFile(char* filename, graph* G){
+graph* getNodesFromFile(char* filename){
   FILE* fptr = NULL;
-  if(openFile(filename, OPEN_FLAG, &fptr)){
-    return EXIT_FAILURE;
-  }
+  if(openFile(filename, OPEN_FLAG, &fptr));
 
   //make a new graph of size x by y
   int nrow = 0, ncol = 0;
-  if(fscanf(fptr, "%d %d\n", &nrow, &ncol) != 2){return EXIT_FAILURE;};
-  G = newGraph(nrow, ncol);
+  if(fscanf(fptr, "%d %d\n", &nrow, &ncol));
+  
+  graph* G = newGraph(nrow, ncol);
   
   if(DEBUG)printf("setting up graph of size (%d,%d)\n",nrow, ncol);
 
@@ -29,7 +28,7 @@ int getNodesFromFile(char* filename, graph* G){
 
       isConnected = fgetc(fptr) - 48; //convert to int
 
-      G->data[r][c]->bridge[BOTTOM] = isConnected;
+      G->data[r][c]->bridge[BOTTOM] = isConnected; //0 weight is there is a bridge there
       G->data[r+1][c]->bridge[TOP] = isConnected;
 
       G->data[r][c]->pos[0] = r;
@@ -47,40 +46,39 @@ int getNodesFromFile(char* filename, graph* G){
 
   if(DEBUG)printf("done loading bridges\n");
 
-  //set up node neighbor connection pointer thingys
-  //set up the interior nodes first, then handle edge cases
-  for(int r = 1; r < nrow-1; r++){
-    for(int c = 1; c < ncol-1; c++){
-      G->data[r][c]->nbor[LEFT] = G->data[r][c-1];
-      G->data[r][c]->nbor[RIGHT] = G->data[r][c+1];
-      G->data[r][c]->nbor[TOP] = G->data[r+1][c];
-      G->data[r][c]->nbor[BOTTOM] = G->data[r-1][c];
+  //set up node neighbor connections and weights
+  for(int r = 0; r < nrow; r++){
+    for(int c = 0; c < ncol; c++){
+      //neighbors
+      G->data[r][c]->nbor[LEFT] = (c != 0 ? G->data[r][c-1] : NULL);
+      G->data[r][c]->nbor[RIGHT] = (c != ncol-1 ? G->data[r][c+1] : NULL);
+      G->data[r][c]->nbor[TOP] = (r != 0 ? G->data[r-1][c] : NULL);
+      G->data[r][c]->nbor[BOTTOM] = (r != nrow-1 ? G->data[r+1][c] : NULL);
+
+      /*
+      //weights
+      if(G->data[r][c]->bridge[TOP] == 0 && G->data[r][c]->bridge[BOTTOM] == 0){
+        G->data[r][c]->bridge[LEFT] = 1;
+        G->data[r][c]->bridge[RIGHT] = 1;
+      }else if(G->data[r][c]->bridge[BOTTOM] == 0){
+        G->data[r][c]->bridge[LEFT] = 1;
+        G->data[r][c]->bridge[RIGHT] = 1;
+        G->data[r][c]->bridge[TOP] = 2;
+      }else if(G->data[r][c]->bridge[TOP] == 0){  
+        G->data[r][c]->bridge[LEFT] = 1;
+        G->data[r][c]->bridge[RIGHT] = 1;
+        G->data[r][c]->bridge[BOTTOM] = 2;
+      }else{
+        //idk
+      }
+      */
     }
   }
-  if(DEBUG)printf("done loading interior nbors\n");
+  if(DEBUG)printf("done loading nbors\n");
   
-  //somewhat terrible edge neighbor handler but whatev
-  //left edge
-  for(int r = 0; r < nrow; r++){
-    G->data[r][0]->nbor[RIGHT] = G->data[r][1];
-  }
-  //right edge
-  for(int r = 0; r < nrow; r++){
-    G->data[r][ncol-1]->nbor[LEFT] = G->data[r][ncol-2];
-  }
-  //top edge
-  for(int c = 0; c < ncol-1; c++){
-    G->data[0][c]->nbor[BOTTOM] = G->data[1][c];
-  }
-  //bottom edge
-  for(int c = 0; c < ncol; c++){
-    G->data[nrow-1][c]->nbor[TOP] = G->data[nrow-2][c];
-  }
-  if(DEBUG)printf("done loading edge nbors\n");
-
   //if(DEBUG)dumpGraph(G);
 
-  return EXIT_SUCCESS;
+  return G;
 }
 
 

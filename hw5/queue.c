@@ -3,30 +3,31 @@
 //queue
 queue* newQueue(){
   queue* toReturn = calloc(1, sizeof(queue));
+  toReturn->data = NULL;
+  toReturn->next = NULL;
   return toReturn;
 }
 
 //enqueue: since this is a priority queue, sort it by distance to the source
 void enqueue(queue* Qhead, node* graphData){
-  queue* toInsert = newQueue(); //make a new queue node
-  toInsert->data = graphData; //put the graph data in the queue node
-  
-  queue* addAfter = Qhead->next; //start at first node
-  while(toInsert->data->dist > addAfter->data->dist){
-    addAfter = addAfter->next; //increment
+  queue* toInsert = newQueue();
+  toInsert->data = graphData;
+
+  queue* addAfter = Qhead;
+  while(addAfter->next != NULL && addAfter->next->data != NULL && toInsert->data->dist > addAfter->next->data->dist){
+    addAfter = addAfter->next;
   }
-  //rearrange the queue to insert the node at the correct location
-  queue* addBefore = addAfter->next;
-  addAfter->next = toInsert;
-  toInsert->next = addBefore;
+
+  toInsert->next = addAfter->next;
+  addAfter->next = toInsert;  
 }
 
 //dequque, return the pointer to the node in the queue node at the front
 node* dequeue(queue* Qhead){
-  node* data = Qhead->data; //get the graph data from the top node
+  node* data = Qhead->next->data; //get the graph data from the top non-head node
   
   queue* newHead = Qhead->next; //move the head forward one
-  free(Qhead->next);
+  free(Qhead);//free old head
   Qhead = newHead; //update head pointer
   
   return data; //return the data requested

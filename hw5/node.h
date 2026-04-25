@@ -5,15 +5,14 @@
 #define BOTTOM 3
 
 //bridge defs
-#define BRIDGE 1
-#define NOBRIDGE 0
+#define BRIDGE 0
 
 //seen defs
 #define SEEN 1
 #define UNSEEN 0
 
 typedef struct node_{
-  int* bridge; //4 possible bridge connections
+  int* bridge; //bridge rotation weights
   int* pos; //x and y coordinates of the node
   int seen;
   

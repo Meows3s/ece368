@@ -4,3 +4,6 @@ default:
 
 run: default
 	./pa5
+
+debug: default
+	gdb ./pa5

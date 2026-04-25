@@ -84,21 +84,62 @@ void dumpGraph(graph* G){
 
 //display all node properties
 void dumpNode(node* N){
-  printf("\n\nnode at (%d,%d):\n",N->pos[0], N->pos[1]);
-  printf("node bridge connections:\n");
-  printf("LEFT: %d\n", N->bridge[LEFT]);
-  printf("RIGHT: %d\n", N->bridge[RIGHT]);
-  printf("TOP: %d\n", N->bridge[TOP]);
-  printf("BOTTOM: %d\n", N->bridge[BOTTOM]);
+  printf("\nnode at (%d,%d):\n",N->pos[0], N->pos[1]);
+
+  if(N->nbor[LEFT] != NULL){
+    printf("node left neighbor is at (%d,%d)", N->nbor[LEFT]->pos[0], N->nbor[LEFT]->pos[1]);
+    printf(" cost: %d\n", N->bridge[LEFT]);
+  }
+
+  if(N->nbor[RIGHT] != NULL){
+    printf("node right neighbor is at (%d,%d)", N->nbor[RIGHT]->pos[0], N->nbor[RIGHT]->pos[1]);
+    printf(" cost: %d\n", N->bridge[RIGHT]);
+  }
+  
+  if(N->nbor[TOP] != NULL){
+    printf("node top neighbor is at (%d,%d)", N->nbor[TOP]->pos[0], N->nbor[TOP]->pos[1]);
+    printf(" cost: %d\n", N->bridge[TOP]);
+  }
+
+  if(N->nbor[BOTTOM] != NULL){
+    printf("node bottom neighbor is at (%d,%d)", N->nbor[BOTTOM]->pos[0], N->nbor[BOTTOM]->pos[1]);
+    printf(" cost: %d\n", N->bridge[BOTTOM]);
+  }
 }
+
+/*
+//fun little tool to disply the graph visually
+void visualGraph(graph* G){
+  for(int r = 0; r < G->nrow; r++){
+    for(int c = 0; c < G->ncol; c++){
+      
+      thisNode = G->data[r][c];
+      printf("(%d,%d)", thisNode->pos[0], thisNode->pos[1]);
+
+      for(int n = 0; n < 3; n++){
+        if(thisNode->nbor[n] != NULL){
+          if(thisNode->bridge[n] == 1){
+            printf("--")
+          }
+        }
+      }
+      
+
+    }
+  }
+}
+*/
 
 //display all of the nodes in the queue
 void dumpQueue(queue* Qhead){
-  queue* nextQ = Qhead; //do this so we don't move the actual head lol
+  queue* nextQ = Qhead->next; //do this so we don't move the actual head lol
   int counter = 0;
-  while(nextQ != NULL){
-    printf("item %d in queue:\n",counter);
+  while(nextQ != NULL && nextQ->data != NULL){
+    printf("\nitem %d in queue:",counter);
     dumpNode(nextQ->data);
+
+    nextQ = nextQ->next;
     counter++;
   }
+  printf("\nend queuedump\n\n");
 }

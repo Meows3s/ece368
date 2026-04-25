@@ -33,9 +33,10 @@ int isQueueEmpty(queue*);
 void shortestFromAny(graph*);
 void shortestFromRow(graph*, int);
 void traverse(graph*, queue*);
+void enqueueNbors(queue*, node*);
 
 //pa5.c
 
 
 //loadNodes.c
-int getNodesFromFile(char*, graph*);
+graph* getNodesFromFile(char*);

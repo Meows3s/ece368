@@ -14,7 +14,12 @@ void enqueue(queue* Qhead, node* graphData){
   toInsert->data = graphData;
 
   queue* addAfter = Qhead;
-  while(addAfter->next != NULL && addAfter->next->data != NULL && toInsert->data->dist > addAfter->next->data->dist){
+  
+  //while(addAfter->next != NULL && addAfter->next->data != NULL && toInsert->data->distFromLast > addAfter->next->data->distFromLast){
+    //addAfter = addAfter->next;
+  //}
+  
+  while(addAfter->next != NULL && addAfter->next->data != NULL && toInsert->data->distFromSource > addAfter->next->data->distFromSource){
     addAfter = addAfter->next;
   }
 
@@ -23,20 +28,13 @@ void enqueue(queue* Qhead, node* graphData){
 }
 
 //dequque, return the pointer to the node in the queue node at the front
-node* dequeue(queue* Qhead){
-  node* data = Qhead->next->data; //get the graph data from the top non-head node
+node* dequeue(queue** Qhead){
+  if(*Qhead == NULL || (*Qhead)->next == NULL){return NULL;}
   
-  queue* newHead = Qhead->next; //move the head forward one
-  free(Qhead);//free old head
-  Qhead = newHead; //update head pointer
-  
-  return data; //return the data requested
-}
+  queue* toRemove = (*Qhead)->next;
+  node* data = toRemove->data;
+  (*Qhead)->next = toRemove->next; //don't delete the actual head, just the first node after it
+  free(toRemove);
 
-int isQueueEmpty(queue* Qhead){
-  if(Qhead == NULL){
-    return 1; 
-  }else{
-    return 0;
-  }
+  return data; //return the data requested
 }

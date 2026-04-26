@@ -11,17 +11,20 @@
 #define SEEN 1
 #define UNSEEN 0
 
+//undiscovered distance
+#define MAX_DIST 999999999
+#define NULL_DIST 999999999
+
 typedef struct node_{
-  int* bridge; //bridge rotation weights
-  int* pos; //x and y coordinates of the node
-  int seen;
+  int pos[2]; //x and y coordinates of the node
+  int bridge[4]; //bridge rotation weights
+  int seen[4]; //one resolution per direction
+  int closestDir[4];
+  int distFromSource[4]; //one distance per incoming direction
   
   struct node_** nbor; //array of node neighbors (oh no)
-  
-  struct node_* closest; //the previous node with shortest distance used to get to this node
-  int dist; //dist to the node above
+  struct node_** closest;
 }node;
-
 
 typedef struct graph_{
   int nrow;

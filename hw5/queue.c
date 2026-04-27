@@ -1,25 +1,13 @@
 #include "defs.h"
 
-//queue
-queue* newQueue(){
-  queue* toReturn = calloc(1, sizeof(queue));
-  toReturn->data = NULL;
-  toReturn->next = NULL;
-  return toReturn;
-}
-
 //enqueue: since this is a priority queue, sort it by distance to the source
-void enqueue(queue* Qhead, node* graphData){
+void enqueue(queue* Qhead, node* graphData, int dir){
   queue* toInsert = newQueue();
   toInsert->data = graphData;
+  toInsert->dir = dir;
 
   queue* addAfter = Qhead;
-  
-  //while(addAfter->next != NULL && addAfter->next->data != NULL && toInsert->data->distFromLast > addAfter->next->data->distFromLast){
-    //addAfter = addAfter->next;
-  //}
-  
-  while(addAfter->next != NULL && addAfter->next->data != NULL && toInsert->data->distFromSource > addAfter->next->data->distFromSource){
+  while(addAfter->next != NULL && addAfter->next->data != NULL && toInsert->data->distFromSource[dir] > addAfter->next->data->distFromSource[dir]){
     addAfter = addAfter->next;
   }
 
@@ -27,12 +15,15 @@ void enqueue(queue* Qhead, node* graphData){
   addAfter->next = toInsert;  
 }
 
-//dequque, return the pointer to the node in the queue node at the front
-node* dequeue(queue** Qhead){
-  if(*Qhead == NULL || (*Qhead)->next == NULL){return NULL;}
+//dequque, return a copy of the queue node at the front
+queue dequeue(queue** Qhead){
+  if(*Qhead == NULL || (*Qhead)->next == NULL){
+    queue nullQ = {NULL, -1, NULL};
+    return nullQ;
+  }
   
   queue* toRemove = (*Qhead)->next;
-  node* data = toRemove->data;
+  queue data = *toRemove; //make a copy of the data at this node
   (*Qhead)->next = toRemove->next; //don't delete the actual head, just the first node after it
   free(toRemove);
 

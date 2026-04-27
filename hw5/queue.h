@@ -1,4 +1,5 @@
 typedef struct queue_{
   node* data;
-  struct queue_* next;
+  int dir; //direction we came from
+  struct queue_* next; //next queue node
 }queue;

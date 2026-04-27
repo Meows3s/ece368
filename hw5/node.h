@@ -19,11 +19,12 @@ typedef struct node_{
   int pos[2]; //x and y coordinates of the node
   int bridge[4]; //bridge rotation weights
   int seen[4]; //one resolution per direction
-  int closestDir[4];
+
   int distFromSource[4]; //one distance per incoming direction
   
   struct node_** nbor; //array of node neighbors (oh no)
-  struct node_** closest;
+  struct node_** closest; //closest neighbor node for each incoming direction
+  int closestDir[4]; //for each incoming direction, what direction is the closest node
 }node;
 
 typedef struct graph_{

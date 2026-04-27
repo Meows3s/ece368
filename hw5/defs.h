@@ -4,7 +4,7 @@
 #include "node.h"
 #include "queue.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 //file stuff
 #define OPEN_FLAG "r+"
@@ -29,16 +29,17 @@ int itemsInQueue(queue*);
 
 //queue.c
 queue* newQueue();
-void enqueue(queue*, node*);
-node* dequeue(queue**);
+void enqueue(queue*, node*, int);
+queue dequeue(queue**);
 
 //explore.c
 void shortestFromAny(graph**);
 void shortestFromRow(graph**, int);
 void traverse(graph**, queue*);
-void enqueueNbors(queue*, node*);
+void enqueueNbors(queue*, node*, int);
+int rotCost(node*, int, int);
 queue* buildPath(graph*);
-void writePath(char*, queue*);
+void writePath(char*, graph*, queue*);
 
 
 //pa5.c

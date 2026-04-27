@@ -6,14 +6,17 @@
 //step 3: take in the shortest path list and generate the board rotations used
 //step 4: profit
 
+//lastNode--->inDir--->thisNode--->outDir--->nbor[x]
+
+
 //find overall shortest path from left to right
 void shortestFromAny(graph** G){
   queue* Qhead = newQueue(); //make the queue
   //can start from anywhere, queue all nodes on the left bank
   for(int r = 0; r < (*G)->nrow; r++){
     node* nodeToQueue = (*G)->data[r][0];
-    nodeToQueue->distFromSource = 0; //directly adjacent to source
-    enqueue(Qhead, nodeToQueue);
+    nodeToQueue->distFromSource[LEFT] = 0; //directly adjacent to source
+    enqueue(Qhead, nodeToQueue, LEFT);
   }  
   traverse(G, Qhead); //update node distances
   freeQueue(Qhead); //done with this queue, free it
@@ -22,7 +25,8 @@ void shortestFromAny(graph** G){
 //find shortest path from row X on the left to any row on the right
 void shortestFromRow(graph** G, int startRow){
   queue* Qhead = newQueue();
-  enqueue(Qhead, (*G)->data[startRow][0]);
+  (*G)->data[startRow][0]->distFromSource[LEFT] = 0;
+  enqueue(Qhead, (*G)->data[startRow][0], LEFT);
   traverse(G, Qhead);
   freeQueue(Qhead);
 }
@@ -34,42 +38,62 @@ void traverse(graph** G, queue* Qhead){
     dumpQueue(Qhead);
   }
 
-  node* currentNode = NULL;
-  
+  queue dequeuedData;
+  node* currentNode;
+  int incomingDir = 0;
+
   while(itemsInQueue(Qhead)){
     //get the node with the shortest distance
-    currentNode = dequeue(&Qhead);
-    currentNode->seen = SEEN; //mark it as visited
+    dequeuedData = dequeue(&Qhead);
+    currentNode = dequeuedData.data;
+    incomingDir = dequeuedData.dir;
+
+    currentNode->seen[incomingDir] = SEEN;
 
     if(DEBUG){
       printf("\ndequeued node:");
       dumpNode(currentNode);
     }
-
-    enqueueNbors(Qhead, currentNode);
-    dumpQueue(Qhead);
+    enqueueNbors(Qhead, currentNode, incomingDir);
   }
 }
 
 //if a neighbor is unvisited and not NULL, add it to the queue
-void enqueueNbors(queue* Qhead, node* N){
-  for(int n = 0; n < 4; n++){
-    node* thisNbor = N->nbor[n];  
-    int newDist = N->distFromSource + N->bridge[n];
+void enqueueNbors(queue* Qhead, node* N, int inDir){
+  for(int outDir = 0; outDir < 4; outDir++){
+
+    if(outDir == inDir){continue;} //do not go backwards on the same node
+
+    node* thisNbor = N->nbor[outDir];
+    int thisMoveCost = rotCost(N, inDir, outDir);
+    int newDist = N->distFromSource[inDir] + thisMoveCost;
 
     //only enqueue nodes that are unseen and if the new path is shorter
-    if(thisNbor != NULL && thisNbor->seen == UNSEEN && newDist < thisNbor-> distFromSource){
+    if(thisNbor != NULL && thisNbor->seen[outDir] == UNSEEN && newDist < thisNbor-> distFromSource[outDir]){
       
-      thisNbor->distFromSource = newDist; //node dist is total dist plus any dist added to get to the new node
-      thisNbor->closest = N; //closest neighbor node for path traceback
+      thisNbor->distFromSource[outDir] = newDist; //node dist is total dist plus any dist added to get to the new node
+      thisNbor->closest[outDir] = N; //closest neighbor node for path traceback
+      thisNbor->closestDir[outDir] = inDir; //save the direction of the closest node for each
 
-      enqueue(Qhead, thisNbor);
+      enqueue(Qhead, thisNbor, outDir);
       
       if(DEBUG){
         printf("\n\nenqueued nbor node:");
         dumpNode(thisNbor);
+        printf("this move cost %d\n",thisMoveCost);
       } 
     }
+  }
+}
+
+int rotCost(node* N, int inDir, int outDir){
+  //if there is already a board in the desired direction, cost is zero
+  if(N->bridge[outDir] == 1){
+    return 0;
+  }else if((inDir == LEFT || inDir == RIGHT) == (outDir == LEFT || outDir == RIGHT)){
+    return 2;
+  }else{
+    return 1; //axis change
   }
 }
 
@@ -79,33 +103,56 @@ queue* buildPath(graph* G){
   int minDist = MAX_DIST;
   node* endNode = NULL;
 
-  //find the node at the end to start tracing back from
+  //find the node at the end to start tracing back from as well as the direction
+  int endDir = 0;
   for(int r = 0; r < G->nrow; r++){
-    if(G->data[r][G->ncol-1]->distFromSource < minDist){
-      minDist = G->data[r][G->ncol-1]->distFromSource;
-      endNode = G->data[r][G->ncol-1];
-    }
+    for(int d = 0; d < 4; d++){ //check each direction
+      if(G->data[r][G->ncol-1]->distFromSource[d] < minDist){
+        minDist = G->data[r][G->ncol-1]->distFromSource[d];
+        endNode = G->data[r][G->ncol-1];
+        endDir = d;
+      }
+    }    
   }
 
   if(DEBUG){
-    printf("\nstarting traceback at node:");
+    printf("\nstarting traceback with direction %d and distance %d at node:", endDir, minDist);
     dumpNode(endNode);
   }
   
   //follow the closest pointer back the the left edge of the board
+  int pathIndex = itemsInQueue(path);
   while(endNode != NULL){
-    enqueue(path, endNode);
-    endNode = endNode->closest;
+    enqueue(path, endNode, pathIndex); //reusing queue to store the path, dir is always 1 so that items are always appended to the end
+    pathIndex--; //makes the priority queue act as a stack
+
+    int nextDir = endNode->closestDir[endDir]; //gets the direction
+    endNode = endNode->closest[endDir]; //move the node down the path
+    endDir = nextDir; //update the closest direction
   }
   return path;
 }
 
 //write the path to a file
-void writePath(char* filename, queue* path){
+void writePath(char* filename, graph* G, queue* path){
   FILE* fptr = NULL;
   openFile(filename, WRITE_FLAG, &fptr);
 
-  //write the start and end positions of the board to fptr
-  
+  if(DEBUG){
+    printf("\nsaving the following queue to file:");
+    dumpQueue(path);
+  }
+
+  int fromR = 0, fromC = 0, toR = 0, toC = 0;
+  node* thisNode = NULL;
+  for(int m = 0; m < itemsInQueue(path); m++){
+    thisNode = dequeue(&path).data;
+    
+    //we know the shortest path, just need to generate the actual board positions that correspond to that movement and write it to the file
+    //TODO: figure out the intermediate pole positions
+    //if(rotCost)
+    fprintf(fptr, "(%d,%d)(%d,%d)\n",fromR, fromC, toR, toC);
+  }
+ 
   fclose(fptr);
 }

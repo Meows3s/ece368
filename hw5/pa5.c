@@ -20,7 +20,7 @@ int main(int argc, char** argv){
   graph* G = getNodesFromFile(inputFile);
   shortestFromAny(&G);
   queue* path = buildPath(G);
-  writePath(outputFile1, path);
+  writePath(outputFile1, G, path);
   freeQueue(path);
   freeGraph(G);
 

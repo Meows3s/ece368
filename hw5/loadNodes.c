@@ -12,14 +12,6 @@ graph* getNodesFromFile(char* filename){
   
   if(DEBUG)printf("setting up graph of size (%d,%d)\n",nrow, ncol);
 
-  //initialize nodes in graph
-  for(int r = 0; r < nrow; r++){
-    for(int c = 0; c < ncol; c++){
-      if(DEBUG)printf("init node at (%d,%d)\n", r, c);
-      G->data[r][c] = newNode();
-    }
-  }
-
   //for each row, load all of the columns
   int isConnected = 0;
 

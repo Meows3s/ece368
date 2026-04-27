@@ -3,7 +3,6 @@
 //open a file with name "filename" and update the given file pointer if possible
 int openFile(char* filename, char* openFlag, FILE** fptr){
   *fptr = fopen(filename, openFlag);
-
   if(*fptr == NULL){
     return EXIT_FAILURE;
   }else{
@@ -43,9 +42,17 @@ graph* newGraph(int nrow, int ncol){
   G->nrow = nrow;
 
   //allocate 2D array for nodes
-  G->data = calloc(1, nrow * sizeof(node*)); //make the first column
+  G->data = calloc(nrow, sizeof(node**)); //make the first column
   for(int r = 0; r < nrow; r++){ //then fill the first column with rows
-    G->data[r] = calloc(1, ncol * sizeof(node));
+    G->data[r] = calloc(ncol, sizeof(node*));
+  }
+
+  //initialize nodes in graph
+  for(int r = 0; r < nrow; r++){
+    for(int c = 0; c < ncol; c++){
+      if(DEBUG)printf("init node at (%d,%d)\n", r, c);
+      G->data[r][c] = newNode();
+    }
   }
 
   //setup neighbors
@@ -54,12 +61,18 @@ graph* newGraph(int nrow, int ncol){
       G->data[r][c]->nbor[LEFT] = (c != 0 ? G->data[r][c-1] : NULL);
       G->data[r][c]->nbor[RIGHT] = (c != ncol-1 ? G->data[r][c+1] : NULL);
       G->data[r][c]->nbor[TOP] = (r != 0 ? G->data[r-1][c] : NULL);
-      G->data[r][c]->nbor[BOTTOM] = (r != nrow-1 ? G->data[r+1][c] : NULL);
-        
-      G->data[r][c]->distFromSource = MAX_DIST; //default unexplored distance      
+      G->data[r][c]->nbor[BOTTOM] = (r != nrow-1 ? G->data[r+1][c] : NULL);       
     }
   }
   return G;
+}
+
+//make a new queue
+queue* newQueue(){
+  queue* toReturn = calloc(1, sizeof(queue));
+  toReturn->data = NULL;
+  toReturn->next = NULL;
+  return toReturn;
 }
 
 //free the entire graph and all nodes
@@ -71,7 +84,6 @@ void freeGraph(graph* G){
       freeNode(G->data[r][c]);
     }
   }
-
   //free the arrays that contained the nodes
   for(int r = 0; r < G->nrow; r++){
     free(G->data[r]);//free each row
@@ -82,8 +94,6 @@ void freeGraph(graph* G){
 
 //free an individual graph node
 void freeNode(node* N){
-  free(N->bridge);
-  free(N->pos);
   free(N->nbor);
   free(N->closest);
   free(N);
@@ -120,56 +130,32 @@ void dumpGraph(graph* G){
 void dumpNode(node* N){
   if(N != NULL){
 
-  printf("\nnode at (%d,%d) with distance %d from source:\n",N->pos[0], N->pos[1], N->distFromSource);
+  printf("\nnode at (%d,%d)\n",N->pos[0], N->pos[1]);
 
   if(N->nbor[LEFT] != NULL){
     printf("node left neighbor is at (%d,%d)", N->nbor[LEFT]->pos[0], N->nbor[LEFT]->pos[1]);
-    printf(" cost: %d\n", N->bridge[LEFT]);
+    printf(" bridge = %d\n", N->bridge[LEFT]);
   }
 
   if(N->nbor[RIGHT] != NULL){
     printf("node right neighbor is at (%d,%d)", N->nbor[RIGHT]->pos[0], N->nbor[RIGHT]->pos[1]);
-    printf(" cost: %d\n", N->bridge[RIGHT]);
+    printf(" bridge = %d\n", N->bridge[RIGHT]);
   }
   
   if(N->nbor[TOP] != NULL){
     printf("node top neighbor is at (%d,%d)", N->nbor[TOP]->pos[0], N->nbor[TOP]->pos[1]);
-    printf(" cost: %d\n", N->bridge[TOP]);
+    printf(" bridge = %d\n", N->bridge[TOP]);
   }
 
   if(N->nbor[BOTTOM] != NULL){
     printf("node bottom neighbor is at (%d,%d)", N->nbor[BOTTOM]->pos[0], N->nbor[BOTTOM]->pos[1]);
-    printf(" cost: %d\n", N->bridge[BOTTOM]);
+    printf(" bride = %d\n", N->bridge[BOTTOM]);
   }
 
   }else{
-    printf("you just tried to print a NULL node!!! (dummy)\n");
-  }
-
-}
-
-/*
-//fun little tool to disply the graph visually
-void visualGraph(graph* G){
-  for(int r = 0; r < G->nrow; r++){
-    for(int c = 0; c < G->ncol; c++){
-      
-      thisNode = G->data[r][c];
-      printf("(%d,%d)", thisNode->pos[0], thisNode->pos[1]);
-
-      for(int n = 0; n < 3; n++){
-        if(thisNode->nbor[n] != NULL){
-          if(thisNode->bridge[n] == 1){
-            printf("--")
-          }
-        }
-      }
-      
-
-    }
+    printf("\nyou just tried to print a NULL node!!! (dummy)\n");
   }
 }
-*/
 
 //display all of the nodes in the queue
 void dumpQueue(queue* Qhead){

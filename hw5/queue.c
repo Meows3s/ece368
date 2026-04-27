@@ -29,3 +29,13 @@ queue dequeue(queue** Qhead){
 
   return data; //return the data requested
 }
+
+int isInQueue(queue* Qhead, node* N){
+  while(Qhead != NULL && Qhead->next != NULL){
+    if(equalNodes(Qhead->next->data, N) == 1){
+      return 1;
+    }
+    Qhead = Qhead->next;
+  } 
+  return 0; //not in queue
+}

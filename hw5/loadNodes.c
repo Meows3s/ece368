@@ -15,8 +15,8 @@ graph* getNodesFromFile(char* filename){
   //for each row, load all of the columns
   int isConnected = 0;
 
-  for(int r = 0; r < nrow-1; r++){
-    for(int c = 0; c < ncol; c++){
+  for(int r = 0; r < G->nrow-1; r++){
+    for(int c = 0; c < G->ncol-1; c++){
 
       isConnected = fgetc(fptr) - 48; //convert to int
 
@@ -34,6 +34,11 @@ graph* getNodesFromFile(char* filename){
         printf("bridge = %d at (%d,%d)\n",isConnected, r+1, c);
       }
     }
+
+    //last column of row is the end node and will never have a bridge but we still want to set the pos
+    G->data[r][G->ncol-1]->pos[0] = r;
+    G->data[r][G->ncol-1]->pos[1] = G->ncol-1;
+
     if(fscanf(fptr, "\n")); //move to next line
   }
   if(DEBUG)printf("done loading bridges\n");

@@ -4,7 +4,7 @@
 #include "node.h"
 #include "queue.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 //file stuff
 #define OPEN_FLAG "r+"
@@ -13,6 +13,7 @@
 //util.c
 int openFile(char*, char*, FILE**);
 int min(int, int);
+int equalNodes(node*, node*);
 
 graph* newGraph(int, int);
 node* newNode();
@@ -31,6 +32,7 @@ int itemsInQueue(queue*);
 queue* newQueue();
 void enqueue(queue*, node*, int);
 queue dequeue(queue**);
+int isInQueue(queue*, node*);
 
 //explore.c
 void shortestFromAny(graph**);

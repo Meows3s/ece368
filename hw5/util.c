@@ -18,6 +18,40 @@ int min(int a, int b){
   }
 }
 
+int equalNodes(node* A, node* B){
+  if(
+    A->pos[0] == B->pos[0] &&
+    A->pos[1] == B->pos[1] &&
+    A->bridge[0] == B->bridge[0] &&
+    A->bridge[1] == B->bridge[1] &&
+    A->bridge[2] == B->bridge[2] &&
+    A->bridge[3] == B->bridge[3] &&
+    A->seen[0] == B->seen[0] &&
+    A->seen[1] == B->seen[1] &&
+    A->seen[2] == B->seen[2] &&
+    A->seen[3] == B->seen[3] &&
+    A->distFromSource[0] == B->distFromSource[0] &&
+    A->distFromSource[1] == B->distFromSource[1] &&
+    A->distFromSource[2] == B->distFromSource[2] &&
+    A->distFromSource[3] == B->distFromSource[3] &&
+    A->nbor[0] == B->nbor[0] &&
+    A->nbor[1] == B->nbor[1] &&
+    A->nbor[2] == B->nbor[2] &&
+    A->nbor[3] == B->nbor[3] &&
+    A->closest[0] == B->closest[0] &&
+    A->closest[1] == B->closest[1] &&
+    A->closest[2] == B->closest[2] &&
+    A->closest[3] == B->closest[3] &&
+    A->closestDir[0] == B->closestDir[0] &&
+    A->closestDir[1] == B->closestDir[1] &&
+    A->closestDir[2] == B->closestDir[2] &&
+    A->closestDir[3] == B->closestDir[3]
+  ){
+    return 1;
+  }
+  return 0;
+}
+
 //make a new node
 node* newNode(){
   node* toReturn = calloc(1, sizeof(node));
@@ -38,12 +72,14 @@ node* newNode(){
 graph* newGraph(int nrow, int ncol){
   graph* G = calloc(1, sizeof(graph));
   
+  ncol = ncol + 1; //add an extra row at the end for the end nodes
+
   G->ncol = ncol;
   G->nrow = nrow;
 
   //allocate 2D array for nodes
   G->data = calloc(nrow, sizeof(node**)); //make the first column
-  for(int r = 0; r < nrow; r++){ //then fill the first column with rows
+  for(int r = 0; r < nrow; r++){
     G->data[r] = calloc(ncol, sizeof(node*));
   }
 

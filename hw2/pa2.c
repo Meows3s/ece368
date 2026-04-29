@@ -1,12 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "tree.h"
+#include "defs.h"
 
 void outputOne(char*, char*);
 void outputTwo(char*, char*);
 void outputThree(char*, char*);
-
-void dumpPost(tree*);
 
 int main(int argn, char** argv){
 
@@ -22,31 +18,26 @@ int main(int argn, char** argv){
   
   //create each output file
   outputOne(inputFile, outFile1);
-  outputTwo(inputFile, outFile2);
-  outputThree(inputFile, outFile3);
+  //outputTwo(inputFile, outFile2);
+  //outputThree(inputFile, outFile3);
   
   return EXIT_SUCCESS;
 }
 
+//post order traversal
 void outputOne(char* inputFile, char* outputFile){
-  tree* root = loadPreorder(inputFile); //load tree in pre-order
-  writePostorder(root, outputFile); //write to file in post-order
-  freeTree(root); //free tree memory
+  tree* root = loadPreorder(inputFile);
+  dumpPost(root);
+  writePostorder(outputFile, root);
+  //freeTree(root);
 }
 
+//packing
 void outputTwo(char* inputFile, char* outputFile){
   
 }
 
+//smallest room packing
 void outputThree(char* inputFile, char* outputFile){
   
-}
-
-//debugging tool to print post order traversal
-void dumpPost(tree* root){
-  if(root == NULL){return;}
-  dumpPost(root->left);
-  dumpPost(root->right);
-  printf("%d\n",root->blockNum);
-  return;
 }

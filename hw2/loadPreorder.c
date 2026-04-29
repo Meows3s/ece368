@@ -1,81 +1,44 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include "tree.h"
+#include "defs.h"
 
-tree* createNode();
-int freeTree(tree*);
-int loadHelper(tree*, FILE*);
-
-tree* loadPreorder(char* filename){ //input file is stored as pre-order traversal
-  //leaf nodes have to have a number, conversely branch nodes have no number
-  tree* root = createNode(); //allocate top node
-  FILE* fptr = fopen(filename, "r+");
-
+tree* loadPreorder(char* filename){
+  FILE* fptr = fopen(filename, FILE_READ_FLAG);
   if(fptr == NULL){
-    if(DEBUG)printf("failed to open file\n");
+    if(DEBUG)printf("bad input file!\n");
     return NULL;
   }else{
-    if(DEBUG)printf("file opened successfully!\n");
+    if(DEBUG)printf("good file, reading preorder\n");
   }
 
-  int nodeNum = loadHelper(root, fptr); //call recursive loader function
-  if(DEBUG)printf("%d nodes loaded\n",nodeNum);
 
+  tree* root = newTree();
+  moStack* stackHead = newStack();
+
+  push(&stackHead, root);
+  while(!stackEmpty(stackHead)){
+    tree* thisNode = pop(&stackHead);
+
+    char mode = fgetc(fptr);
+    if(DEBUG)printf("read mode as %c\n", mode);
+
+    if(mode == HORIZ || mode == VERT){
+      fscanf(fptr, "\n"); //move to the end of the line
+      thisNode->divType = mode;
+      
+      thisNode->left = newTree();
+      thisNode->right = newTree();
+
+      //push right then left so that left is popped first
+      push(&stackHead, thisNode->right); 
+      push(&stackHead, thisNode->left);
+      
+    }else{//leaf node
+      thisNode->divType = LEAF;
+      thisNode->blockNum = mode - 48;
+      fscanf(fptr, "(%d,%d)\n", &(thisNode->pos[0]), &(thisNode->pos[1]));
+    }
+  }
+  
+  freeStack(stackHead);
   fclose(fptr);
-
   return root;
-}
-
-int loadHelper(tree* node, FILE* fptr){
-  //pre order traversal means root, left, right
-  if(feof(fptr)){
-    printf("end of file reached\n");
-    return 0;
-  }
-  
-  char mode;
-  fscanf(fptr, "%c\n", &mode);
-
-  if(mode == VERT || mode == HORIZ){ //if we are not yet at the bottom of this branch...
-
-    printf("loading branch with mode %c\n", mode);
-
-    node->div = mode;
-    node->left = createNode();
-    node->right = createNode();
-    
-    return loadHelper(node->left, fptr) + loadHelper(node->right, fptr); //only count leaf nodes, not branch nodes
-  }
-
-  //if we are at the bottom of this branch
-  fseek(fptr, -1, SEEK_CUR); //go back
-  node->div = LEAF;
-  
-  //int fscanf ( FILE * stream, const char * format, ... );
-  fscanf(fptr, "%d(%d,%d)\n", &node->blockNum, &node->xPos, &node->yPos);
-
-  printf("found node with blocknum %d\n", node->blockNum);
-
-  return 1;
-}
-
-tree* createNode(){ //allocate space for a new empty node
-  tree* node = calloc(1, sizeof(tree));
-
-  //node->div = ;
-  node->blockNum = -1;
-  node->xPos = -1;
-  node->yPos = -1;
-  node->left = NULL;
-  node->right = NULL;
-
-  return node;
-}
-
-int freeTree(tree* root){
-  if(root == NULL){return 1;}
-  int leftSide = freeTree(root->left);
-  int rightSide = freeTree(root->right);
-  free(root);
-  return leftSide + rightSide;
 }

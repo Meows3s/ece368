@@ -10,13 +10,11 @@ long* Generate_2p3q_Seq(int, int*);
 long* Generate_2p3q_Seq(int less_than, int* seq_size){
 
   long* tempCounter = calloc(less_than + 2, sizeof(long));
-
   *seq_size = seq_util(less_than, tempCounter, -1); //count the number of elements in the sequence
     
   free(tempCounter);
 
   long* seq = calloc(*seq_size, sizeof(long)); //create a pointer to point to the sequence
-
   seq_util(less_than, seq, *seq_size); //set the sequence pointer to an array with those elements
   return seq; //return the sequence pointer
 }

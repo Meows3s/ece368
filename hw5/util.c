@@ -60,6 +60,7 @@ node* newNode(){
     toReturn->bridge[n] = 0; //assume no bridge unless a bridge is explicitly set
     toReturn->seen[n] = UNSEEN;
     toReturn->distFromSource[n] = MAX_DIST;
+    toReturn->closestDir[n] = LEFT;
   }
 
   toReturn->nbor = calloc(4, sizeof(node*));

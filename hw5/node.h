@@ -1,7 +1,7 @@
 //pos defs
 #define LEFT 0
-#define RIGHT 1
-#define TOP 2
+#define RIGHT 2
+#define TOP 1
 #define BOTTOM 3
 
 //bridge defs

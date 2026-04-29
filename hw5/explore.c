@@ -69,7 +69,7 @@ void enqueueNbors(queue* Qhead, node* N, int inDir){
     int newDist = N->distFromSource[inDir] + thisMoveCost;
 
     //only enqueue nodes that are unseen and if the new path is shorter
-    if(thisNbor != NULL && thisNbor != N->closest[outDir] && thisNbor->seen[outDir] == UNSEEN && newDist < thisNbor-> distFromSource[outDir]){
+    if(thisNbor != NULL && thisNbor != N->closest[inDir] && thisNbor->seen[outDir] == UNSEEN && newDist < thisNbor-> distFromSource[outDir]){
       
       thisNbor->distFromSource[outDir] = newDist; //node dist is total dist plus any dist added to get to the new node
       thisNbor->closest[outDir] = N; //closest neighbor node for path traceback
@@ -80,21 +80,34 @@ void enqueueNbors(queue* Qhead, node* N, int inDir){
       if(DEBUG){
         printf("\n\nenqueued nbor node:");
         dumpNode(thisNbor);
-        printf("this move cost %d\n",thisMoveCost);
       } 
     }
   }
 }
 
-int rotCost(node* N, int inDir, int outDir){
+int rotCost(node* currentNode, int inDir, int outDir){ 
   //if there is already a board in the desired direction, cost is zero
-  if(N->bridge[outDir] == 1){
+
+  if(currentNode->bridge[outDir]){
     return 0;
-  }else if((inDir == LEFT || inDir == RIGHT) == (outDir == LEFT || outDir == RIGHT)){
-    return 2;
-  }else{
-    return 1; //axis change
   }
+  /*else if(currentNode->bridge[outDir == 3 ? 0 : outDir + 1] || currentNode->bridge[outDir == 0 ? 3 :outDir - 1] || ((inDir == 3 ? 0 : inDir + 1) == outDir) || ((inDir == 0 ? 3 : inDir - 1) == outDir)){ //check adjacent bridge connections
+    return 1;
+  }else{
+    return 2; //otherwise 2 rotations are required
+  }*/
+
+  int minCost = 2; //worst case
+  for(int d = 0; d < 4; d++){ //check every direction
+    if(d == outDir)continue; //already covered
+    if(d == inDir || currentNode->bridge[d] == 1){ // inDir is always a bridge
+      int diff = abs(d - outDir);
+      int cost = min(diff, 4 - diff);
+      if(cost < minCost) minCost = cost;
+    }
+  }
+  if(DEBUG)printf("found path of %d cost\n", minCost);
+  return minCost;
 }
 
 //create a shortest path, return it as a list (queue*)
@@ -133,6 +146,13 @@ queue* buildPath(graph* G){
   return path;
 }
 
+int travelDir(node* from, node* to){
+  if(to->pos[0] < from->pos[0]) return TOP;
+  if(to->pos[0] > from->pos[0]) return BOTTOM;
+  if(to->pos[1] < from->pos[1]) return LEFT;
+  return RIGHT;
+}
+
 //write the path to a file
 void writePath(char* filename, graph* G, queue* path){
   FILE* fptr = NULL;
@@ -145,35 +165,48 @@ void writePath(char* filename, graph* G, queue* path){
 
   queue thisStep = dequeue(&path);
   queue nextStep = dequeue(&path);
-  
+  int inDir = RIGHT; //always move right initially
+
   fprintf(fptr, "(%d,%d)(%d,%d)\n",thisStep.data->pos[0], -1, thisStep.data->pos[0], 0);//initial board
 
   while(nextStep.data != NULL){
     node* thisNode = thisStep.data;
     node* nextNode = nextStep.data;
-    int outDir = nextStep.dir; //direction to get to "next"
-    int inDir = thisStep.dir; //direction to get to "from"
+    //int outDir = nextStep.dir; //direction to get to "next"
+    //int inDir = thisStep.dir;  WRONG!! THIS IS THE PRIOR INDEX NOT THE DIR //direction to get to "this"
+    //this cost me several hours btw :((((
+     
+    int outDir = travelDir();
+        inDir = travelDir(thisNode, nextNode);
 
-    //TODO: fix cost calculator
-    int cost = 0;
-    if(thisNode->bridge[outDir] == 1){
-      cost = 0;
-    }else{
-      cost = rotCost(thisNode, inDir, outDir);
-    }
+    int cost = rotCost(thisNode, inDir, outDir);
+
+    printf("writing this node to path: \n");
+    dumpNode(nextNode);
+    printf("cost = %d\n", cost);
+
 
     if(cost == 2){//more complex, need to consider intermediate node used to rotate
-      node* intermediate = (thisNode->bridge[TOP] == 1 && thisNode->nbor[TOP] != NULL) ? thisNode->nbor[TOP] : thisNode->nbor[BOTTOM];
-      fprintf(fptr, "(%d,%d)(%d,%d)\n",thisNode->pos[0], thisNode->pos[1], intermediate->pos[0], intermediate->pos[1]); //where the board was before
+      
+      int plusOne = (outDir == 3 ? 0 : outDir + 1);
+      int minusOne = (outDir == 0 ? 3 : outDir - 1);
+      int intermediateDir = minusOne;
+
+      if(thisNode->nbor[intermediateDir] == NULL){intermediateDir = plusOne;}
+      if(thisNode->nbor[intermediateDir] == NULL){printf("WTF\n\n\n\n");}
+
+      node* intermediate = thisNode->nbor[intermediateDir];
+      fprintf(fptr, "(%d,%d)(%d,%d)\n", thisNode->pos[0], thisNode->pos[1], intermediate->pos[0], intermediate->pos[1]);
+      printf("intermediate NODE!!!!!!\n");
     }
-    if(cost > 0){ //always do this when rotating
-      fprintf(fptr, "(%d,%d)(%d,%d), cost = %d\n",thisNode->pos[0], thisNode->pos[1], nextNode->pos[0], nextNode->pos[1], cost); //where the board was before
+
+    if(cost != 0){ //always do this when rotating
+      fprintf(fptr, "(%d,%d)(%d,%d)\n",thisNode->pos[0], thisNode->pos[1], nextNode->pos[0], nextNode->pos[1]); //where the board was before
     }
 
     //update steps
     thisStep = nextStep;
     nextStep = dequeue(&path);
   }
- 
   fclose(fptr);
 }

@@ -12,10 +12,14 @@
 tree* loadPreorder(char*);
 
 //writePostorder.c
-int writePostorder(char*, tree*);
+int writePostorder(tree*, char*);
+
+//pack.c
+int writePack(tree*, char*);
 
 //util.c
 tree* newTree(void);
+void freeTree(tree*);
 
 void dumpTreeNode(tree*);
 void dumpPost(tree*);

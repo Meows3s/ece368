@@ -13,6 +13,30 @@ tree* newTree(void){
   return toReturn;
 }
 
+//used "in production", no resurcion allowed :(
+void freeTree(tree* root){
+  moStack* stackHead = newStack();
+  push(&stackHead, root);
+  tree* lastFreed = root->left;
+  while(!stackEmpty(stackHead)){
+    //free left, then right, then self
+    root = pop(&stackHead);
+    if(root->divType == LEAF){
+      lastFreed = root;
+      free(root);
+    }else if(root->divType != LEAF && root->right == lastFreed){
+      lastFreed = root;
+      free(root);
+    }else{
+      push(&stackHead, root);
+      push(&stackHead, root->right);
+      push(&stackHead, root->left);
+    }
+  }
+  freeStack(stackHead);
+}
+
+//only used for debugging
 void dumpTreeNode(tree* root){
   if(root == NULL){return;}
   if(root->divType == LEAF){
@@ -22,6 +46,7 @@ void dumpTreeNode(tree* root){
   }
 }
 
+//also only used for debugging
 void dumpPost(tree* root){
   if(root == NULL){return;}
   dumpPost(root->left);

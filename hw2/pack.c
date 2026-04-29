@@ -1,14 +1,12 @@
 #include "defs.h"
 
-int writePostorder(tree* root, char* filename){
-  FILE* fptr = fopen(filename, FILE_WRITE_FLAG);
+int writePack(tree* root, char* outputFile){
+  FILE* fptr = fopen(outputFile, FILE_WRITE_FLAG);
   if(fptr == NULL){
-    if(DEBUG)printf("bad output file!\n");
+    if(DEBUG)printf("output two bad input file!\n");
     return EXIT_FAILURE;
-  }else{
-    if(DEBUG)printf("good file, writing postorder\n");
   }
-
+  
   moStack* stackHead = newStack();
   push(&stackHead, root);
 
@@ -26,8 +24,11 @@ int writePostorder(tree* root, char* filename){
       fprintf(fptr, "%d(%d,%d)\n", thisNode->blockNum, thisNode->pos[0], thisNode->pos[1]);
       dumpTreeNode(lastWritten);
     }else if(thisNode->divType != LEAF && thisNode->right == lastWritten){ //right child is done, can write self to file
+
+      //TODO: make this actuall do the thing (bounding box of each branch)
+    
       lastWritten = thisNode;
-      fprintf(fptr, "%c\n", thisNode->divType);
+
     }else{ //branch node with tree below, add children and self to stack
       push(&stackHead, thisNode);
       if(thisNode->right != NULL) push(&stackHead, thisNode->right);

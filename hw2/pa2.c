@@ -1,9 +1,5 @@
 #include "defs.h"
 
-void outputOne(char*, char*);
-void outputTwo(char*, char*);
-void outputThree(char*, char*);
-
 int main(int argn, char** argv){
 
   //if(argn != 5){return EXIT_FAILURE;} //fail because of too many arguments
@@ -16,28 +12,18 @@ int main(int argn, char** argv){
 
   if(DEBUG)printf("testing program on input file: %s\n", inputFile);
   
-  //create each output file
-  outputOne(inputFile, outFile1);
-  //outputTwo(inputFile, outFile2);
-  //outputThree(inputFile, outFile3);
-  
-  return EXIT_SUCCESS;
-}
 
-//post order traversal
-void outputOne(char* inputFile, char* outputFile){
   tree* root = loadPreorder(inputFile);
-  dumpPost(root);
-  writePostorder(outputFile, root);
-  //freeTree(root);
-}
 
-//packing
-void outputTwo(char* inputFile, char* outputFile){
+  //output one
+  writePostorder(root, outFile1);
   
-}
+  //output two
+  writePack(root, outFile2);
+  
+  //output three
 
-//smallest room packing
-void outputThree(char* inputFile, char* outputFile){
-  
+  freeTree(root);
+
+  return EXIT_SUCCESS;
 }

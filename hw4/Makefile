@@ -1,6 +1,10 @@
-testE:
-	make compile
+default:
+	clear
+	gcc -std=c99 -pedantic -Wvla -Wall -Wshadow -O3 *.c -o pa4
+
+testE: default
 	./pa4 -e examples/tree0.b
 
-compile:
-	gcc -std=c99 -pedantic -Wvla -Wall -Wshadow -O3 converter.c build.c evaluate.c pa4.c -o pa4
+testB: default
+	./pa4 -b examples/ops2.b outputs/tree2.b
+	diff examples/tree2.b outputs/tree2.b

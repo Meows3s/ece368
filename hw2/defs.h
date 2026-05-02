@@ -15,9 +15,14 @@ tree* loadPreorder(char*);
 int writePostorder(tree*, char*);
 
 //pack.c
-int writePack(tree*, char*);
+int writePack(tree**, char*);
+
+//writeBound.c
+int writeBound(tree*, char*);
 
 //util.c
+int max(int, int);
+
 tree* newTree(void);
 void freeTree(tree*);
 

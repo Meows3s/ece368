@@ -5,8 +5,6 @@ int writePostorder(tree* root, char* filename){
   if(fptr == NULL){
     if(DEBUG)printf("bad output file!\n");
     return EXIT_FAILURE;
-  }else{
-    if(DEBUG)printf("good file, writing postorder\n");
   }
 
   moStack* stackHead = newStack();
@@ -17,14 +15,12 @@ int writePostorder(tree* root, char* filename){
 
   while(!stackEmpty(stackHead)){
     
-    dumpStack(stackHead);
     thisNode = pop(&stackHead);
 
     //left, right, self
     if(thisNode->divType == LEAF){//leaf node, can write immidately
       lastWritten = thisNode;
-      fprintf(fptr, "%d(%d,%d)\n", thisNode->blockNum, thisNode->pos[0], thisNode->pos[1]);
-      dumpTreeNode(lastWritten);
+      fprintf(fptr, "%d(%d,%d)\n", thisNode->blockNum, thisNode->width, thisNode->height);
     }else if(thisNode->divType != LEAF && thisNode->right == lastWritten){ //right child is done, can write self to file
       lastWritten = thisNode;
       fprintf(fptr, "%c\n", thisNode->divType);

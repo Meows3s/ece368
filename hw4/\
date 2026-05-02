@@ -42,6 +42,7 @@ int buildTree(char* inputFile, char* outputFile){
  return EXIT_SUCCESS;//success
 }
 
+
 void insert(Tnode* root, Tnode* toInsert){
   if(root == NULL){return;}
 
@@ -71,12 +72,8 @@ void delete(Tnode** rootptr, int value){
   if(root->key == value && root->left == NULL && root->right == NULL){//no children
     free(root);
     *rootptr = NULL;
-  }else if(root->key == value && root->left == NULL){//only right child
+  }else if(root->key == value){
     *rootptr = root->right;
-    free(root);
-  }else if(root->key == value){//two children
-    (*rootptr)->key = root->left->key; //copy up the new key from the predecessor (left)
-    delete(&root->left, root->left->key); //delete the predecessor
     free(root);
   }else if(value <= root->key){
     delete(&root->left, value);
@@ -85,24 +82,7 @@ void delete(Tnode** rootptr, int value){
   }
 }
 
-void rotate(Tnode** rootptr, int dir){
-  Tnode* root = *rootptr; //this is a lot nicer than dereferencing it everywhere in the function :)
-  if(root == NULL){return;}
-
-  if(dir == R_RIGHT){
-    Tnode* newRoot = root->left;
-    root->left = newRoot->right;
-    newRoot->right = root;
-    *rootptr = newRoot;
-  }else if(dir == R_LEFT){
-    Tnode* newRoot = root->right;
-    root->right = newRoot->left;
-    newRoot->left = root;
-    *rootptr = newRoot;
-  }
-}
-
-void calcBalance(Tnode* root){
+void rotate(Tnode* root, int pivot, int dir){
    
 }
 

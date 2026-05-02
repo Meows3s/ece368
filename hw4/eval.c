@@ -1,28 +1,27 @@
 #include "defs.h"
 
-int balancedHelper(Tnode*);
+int isBST(char*);
 int isBSTHelper(FILE*, int, int);
 
-//returns 1 if the tree is height balanced, returns 0 otherwise
-int isBalanced(char* filename){
-  FILE* fptr = fopen(filename, "r");
-  if(fptr == NULL){return 0;} //check failed
-  
-  
+int isBal(char*);
 
-  fclose(fptr);
-  return 1; //fix
+//do some checks on the input tree FILE (not actually a tree)
+int eval(char* inputFile){
+  FILE* fptr = fopen(inputFile, FILE_READ_FLAG);
+
+  int goodFile = ((fptr == NULL) ? -1 : 1);
+  int goodBst = isBST(inputFile);
+  int goodBal = isBal(inputFile);
+
+  printf("%d,%d,%d\n", goodFile, goodBst, goodBal);
+  
+  return EXIT_SUCCESS;
 }
 
-//recursive helper func
-int balancedHelper(Tnode* thisNode){
-  
-}
 
 //check if the FILE (not tree) given is a valid BST; that is the left node is always smaller than the right
 int isBST(char* filename){
-  FILE* fptr = fopen(filename, "r");
-  if(fptr == NULL){return 0;} //check failed
+  FILE* fptr = fopen(filename, FILE_READ_FLAG);
   
   isBSTHelper(fptr, 0, 0); //start recursive helper
 
@@ -34,7 +33,7 @@ int isBST(char* filename){
 int isBSTHelper(FILE* fptr, int dir, int parentVal){
   int leftSide = 1, rightSide = 1;
   int key = 0, balance = 0;
-  int pass = fscanf(fptr, "%d %d\n", &key, &balance);
+  if(fscanf(fptr, "%d %d\n", &key, &balance));
 
   //if we are at a branch
   if(balance == BRANCH){
@@ -49,14 +48,10 @@ int isBSTHelper(FILE* fptr, int dir, int parentVal){
     }else{ //right leaf
       return parentVal < key; //true if previous node is < this one
     }
-  }
-  
+  } 
   return leftSide * rightSide; //returns zero if either side failed (whole tree fails)
 }
 
-int isGoodFile(char* filename, char* mode){
-  FILE* fptr = fopen(filename, mode);
-  if(fptr == NULL){return 0;} //check failed
-  fclose(fptr);
-  return 1;
+int isBal(char* inputFile){
+  return 0;
 }

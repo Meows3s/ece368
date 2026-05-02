@@ -5,10 +5,7 @@
 
 #define DEBUG 0
 
-long* Array_Load_From_File(char*, int*);
-int Array_Save_To_File(char*, long*, int);
 int getFileLength(FILE*);
-
 
 void sortKsubseq(long* toSort, int n, int start, int k, long* n_comp){
   long count = 0;

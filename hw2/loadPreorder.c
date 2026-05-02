@@ -5,10 +5,7 @@ tree* loadPreorder(char* filename){
   if(fptr == NULL){
     if(DEBUG)printf("bad input file!\n");
     return NULL;
-  }else{
-    if(DEBUG)printf("good file, reading preorder\n");
   }
-
 
   tree* root = newTree();
   moStack* stackHead = newStack();
@@ -18,7 +15,6 @@ tree* loadPreorder(char* filename){
     tree* thisNode = pop(&stackHead);
 
     char mode = fgetc(fptr);
-    if(DEBUG)printf("read mode as %c\n", mode);
 
     if(mode == HORIZ || mode == VERT){
       fscanf(fptr, "\n"); //move to the end of the line
@@ -34,7 +30,7 @@ tree* loadPreorder(char* filename){
     }else{//leaf node
       thisNode->divType = LEAF;
       thisNode->blockNum = mode - 48;
-      fscanf(fptr, "(%d,%d)\n", &(thisNode->pos[0]), &(thisNode->pos[1]));
+      fscanf(fptr, "(%d,%d)\n", &(thisNode->width), &(thisNode->height));
     }
   }
   

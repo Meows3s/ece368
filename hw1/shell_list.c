@@ -10,8 +10,7 @@ int List_Save_To_File(char*, Node*);
 Node* List_Load_From_File(char*, int*);
 
 Node* List_Shellsort(Node* list, long* n_comp){
-  //I admit that I did not manage my time well and was not able to complete this function. I guess I will know to start earlier next time.
-  *n_comp = (list->value % 1000)*(list->value % 1000) ;//random value for testing
+  //*n_comp = (list->value % 1000)*(list->value % 1000) ;//random value for testing
   return list;
 }
 

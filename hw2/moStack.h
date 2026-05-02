@@ -7,7 +7,8 @@ typedef struct tree_{ //define the binary tree type
   char divType;
 
   int blockNum;
-  int pos[2];
+  int width;
+  int height;
 
   struct tree_* left;
   struct tree_* right;

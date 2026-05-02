@@ -1,5 +1,13 @@
 #include "defs.h"
 
+int max(int a, int b){
+  if(a > b){
+    return a;
+  }else{
+    return b;
+  }
+}
+
 tree* newTree(void){
   tree* toReturn = calloc(1, sizeof(tree));
   toReturn->left = NULL;
@@ -7,8 +15,8 @@ tree* newTree(void){
 
   toReturn->divType = UNDEFINED;
   toReturn->blockNum = -1;
-  toReturn->pos[0] = -1;
-  toReturn->pos[1] = -1;
+  toReturn->width = -1;
+  toReturn->height -1;
 
   return toReturn;
 }
@@ -40,7 +48,7 @@ void freeTree(tree* root){
 void dumpTreeNode(tree* root){
   if(root == NULL){return;}
   if(root->divType == LEAF){
-    printf("%d(%d,%d)\n", root->blockNum, root->pos[0], root->pos[1]);
+    printf("%d(%d,%d)\n", root->blockNum, root->width, root->height);
   }else{
     printf("%c\n", root->divType);
   }
@@ -54,5 +62,3 @@ void dumpPost(tree* root){
   dumpTreeNode(root);
   return;
 }
-
-

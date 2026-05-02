@@ -10,18 +10,23 @@ int main(int argn, char** argv){
   char* outFile2 = argv[3]; //-> output file 2
   char* outFile3 = argv[4]; //-> output file 3
 
-  if(DEBUG)printf("testing program on input file: %s\n", inputFile);
-  
+  if(DEBUG){
+    printf("\ntesting program on input file: %s\n", inputFile);
+    printf("output file 1: %s\n", outFile1);
+    printf("output file 2: %s\n", outFile2);
+    printf("output file 3: %s\n\n", outFile3);
+  }
 
   tree* root = loadPreorder(inputFile);
 
   //output one
-  writePostorder(root, outFile1);
+  if(writePostorder(root, outFile1) == EXIT_FAILURE){return EXIT_FAILURE;}
   
   //output two
-  writePack(root, outFile2);
+  if(writePack(&root, outFile2) == EXIT_FAILURE){return EXIT_FAILURE;}
   
   //output three
+  if(writeBound(root, outFile3) == EXIT_FAILURE){return EXIT_FAILURE;}
 
   freeTree(root);
 

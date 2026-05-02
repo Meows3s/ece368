@@ -42,6 +42,8 @@ void enqueueNbors(queue*, node*, int);
 int rotCost(node*, int, int);
 queue* buildPath(graph*);
 void writePath(char*, graph*, queue*);
+int travelDir(node*, node*);
+
 
 
 //pa5.c

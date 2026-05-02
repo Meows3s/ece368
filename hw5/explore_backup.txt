@@ -222,13 +222,9 @@ node* findPivot(node* thisNode, node* nextNode){
   return NULL;
 }
 
-
-
 //write the path to a file
 void writePath(char* filename, graph* G, queue* path){
-  
-  
- FILE* fptr = NULL;
+  FILE* fptr = NULL;
   openFile(filename, WRITE_FLAG, &fptr);
   
   if(DEBUG){
@@ -240,31 +236,42 @@ void writePath(char* filename, graph* G, queue* path){
   queue thisStep = dequeue(&path);
   queue nextStep = dequeue(&path);
 
-  fprintf(fptr, "(%d,%d)(%d,%d)\n",thisStep.data->pos[0], -1, thisStep.data->pos[0], 0);//initial boards
-
-  node* lastA = NULL;
-  node* lastB = NULL;
+  fprintf(fptr, "(%d,%d)(%d,%d)\n",thisStep.data->pos[0], -1, thisStep.data->pos[0], 0);//initial board
 
   while(nextStep.data != NULL){
     node* thisNode = thisStep.data;
     node* nextNode = nextStep.data;
+     
+    int outDir = travelDir(thisNode, nextNode);
+    int inDir = (prevNode != NULL) ? travelDir(prevNode, thisNode) : RIGHT;
     
-    // skip if this is a duplicate of the last written board
-    if((thisNode == lastA && nextNode == lastB) || (thisNode == lastB && nextNode == lastA)){
-        prevNode = thisNode;
-        thisStep = nextStep;
-        nextStep = dequeue(&path);
-        continue;
+    int cost = rotCost(thisNode, inDir, outDir);
+    
+    printf("writing this node to path: \n");
+    dumpNode(nextNode);
+    //printf("cost = %d\n", cost);
+   
+    
+    if(cost == 2){//more complex, need to consider intermediate node used to rotate
+      
+      int plusOne = (outDir == 3 ? 0 : outDir + 1);
+      int minusOne = (outDir == 0 ? 3 : outDir - 1);
+      int intermediateDir = minusOne;
+    
+      if(thisNode->nbor[intermediateDir] == NULL){intermediateDir = plusOne;}
+      if(thisNode->nbor[intermediateDir] == NULL){printf("WTF\n\n\n\n");}
+    
+      node* intermediate = thisNode->nbor[intermediateDir];
+      //writeBoard(fptr, thisNode, intermediate);
+      printf("intermediate NODE!!!!!!\n");
     }
     
+
     writeBoard(fptr, thisNode, nextNode);
-    lastA = thisNode;
-    lastB = nextNode;
 
     prevNode = thisNode;
     thisStep = nextStep;
     nextStep = dequeue(&path);
-}
-
+  }
   fclose(fptr);
 }

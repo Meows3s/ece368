@@ -44,3 +44,4 @@ void rotate(Tnode**, int);
 void calcBalance(Tnode*);
 
 void freeTree(Tnode*);
+void dumpTree(Tnode*);

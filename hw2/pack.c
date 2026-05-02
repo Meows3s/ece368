@@ -29,11 +29,10 @@ int writePack(tree** treeIn, char* outputFile2){
       int potentialWidth = thisNode->left->width + thisNode->right->width;
       int potentialHeight = thisNode->left->height + thisNode->right->height;
       
-      if(thisNode->divType == VERT && potentialWidth > totalWidth){
+      if(thisNode->divType == VERT && potentialWidth >= totalWidth){
         totalHeight = max(thisNode->left->height, thisNode->right->height);
         totalWidth = potentialWidth;
-      }
-      if(thisNode->divType == HORIZ && potentialHeight > totalHeight){
+      }else if(thisNode->divType == HORIZ && potentialHeight >= totalHeight){
         totalHeight = potentialHeight;
         totalWidth = max(thisNode->left->width, thisNode->right->width);
       }
@@ -53,4 +52,5 @@ int writePack(tree** treeIn, char* outputFile2){
 
   freeStack(stackHead);
   fclose(fptr2);
+  return EXIT_SUCCESS;
 }

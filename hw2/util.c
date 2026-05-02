@@ -16,7 +16,7 @@ tree* newTree(void){
   toReturn->divType = UNDEFINED;
   toReturn->blockNum = -1;
   toReturn->width = -1;
-  toReturn->height -1;
+  toReturn->height = -1;
 
   return toReturn;
 }

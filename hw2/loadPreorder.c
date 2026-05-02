@@ -17,7 +17,7 @@ tree* loadPreorder(char* filename){
     char mode = fgetc(fptr);
 
     if(mode == HORIZ || mode == VERT){
-      fscanf(fptr, "\n"); //move to the end of the line
+      if(fscanf(fptr, "\n")); //move to the end of the line
       thisNode->divType = mode;
       
       thisNode->left = newTree();
@@ -30,7 +30,7 @@ tree* loadPreorder(char* filename){
     }else{//leaf node
       thisNode->divType = LEAF;
       thisNode->blockNum = mode - 48;
-      fscanf(fptr, "(%d,%d)\n", &(thisNode->width), &(thisNode->height));
+      if(fscanf(fptr, "(%d,%d)\n", &(thisNode->width), &(thisNode->height)));
     }
   }
   

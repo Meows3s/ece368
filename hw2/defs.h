@@ -6,7 +6,7 @@
 #define FILE_READ_FLAG "r"
 #define FILE_WRITE_FLAG "w"
 
-#define DEBUG 1
+#define DEBUG 0
 
 //loadPreorder.c
 tree* loadPreorder(char*);

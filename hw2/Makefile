@@ -2,16 +2,19 @@ pa2:
 	clear
 	gcc -O3 -std=c99 -Wall -Wshadow -Wvla -pedantic *.c -o pa2
 
-debug: default
+clean:
+	rm pa2
+
+debug: pa2
 	valgrind -s --leak-check=full ./pa2 examples/3.pr outputs/3.po outputs/3.dim outputs/3.pck
 
-run3: default
+run3: pa2
 	./pa2 examples/3.pr outputs/3.po outputs/3.dim outputs/3.pck
 	diff examples/3.po outputs/3.po
 	diff examples/3.dim outputs/3.dim
 	diff examples/3.pck outputs/3.pck
 
-run8: default
+run8: pa2
 	./pa2 examples/8.pr outputs/8.po outputs/8.dim outputs/8.pck
 	diff examples/8.po outputs/8.po
 	diff examples/8.dim outputs/8.dim

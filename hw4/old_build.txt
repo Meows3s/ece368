@@ -1,0 +1,187 @@
+#include "defs.h"
+
+void balance(Tnode**);
+
+int buildTree(char* inputFile, char* outputFile){
+  FILE* fptrIN = fopen(inputFile, FILE_READ_FLAG);
+  FILE* fptrOUT = fopen(outputFile, FILE_WRITE_FLAG);
+  if(fptrIN == NULL || fptrOUT == NULL){
+    return EXIT_FAILURE;
+  }
+
+  int key;
+  char op;
+  Tnode* root = NULL;
+  
+  while(1){
+  
+    if(fread(&key, sizeof(int), 1, fptrIN) != 1){
+      break;
+    }
+    if(fread(&op, sizeof(char), 1, fptrIN) != 1){
+      break;
+    }
+ 
+    fprintf(stderr, "read value: %d and op %c\n", key, op);
+ 
+    if(op == INSERT){
+      Tnode* toInsert = newNode(key);
+      
+      fprintf(stderr, "inserting node with key %d\n", toInsert->key);
+      
+      insert(&root, toInsert);
+    }else if(op == DELETE){
+      fprintf(stderr, "deleting node with key %d\n", key);
+      delete(&root, key);
+    }
+
+    //balance(&root); //no lmao
+
+  }
+    
+  
+  if(DEBUG)printf("writing to output file...\n");
+  writeToFile(fptrOUT, root);
+
+  freeTree(root);
+
+  fclose(fptrIN);
+  fclose(fptrOUT);
+ return EXIT_SUCCESS;//success
+}
+
+void insert(Tnode** rootptr, Tnode* toInsert){
+  Tnode* root = *rootptr;
+  if(root == NULL){
+    *rootptr = toInsert;
+    return;
+  }
+
+  if(toInsert->key <= root->key){//go left
+    if(root->left == NULL){
+      root->left = toInsert;
+    }else{
+      insert(&root->left, toInsert);
+    }
+  }else{
+    if(root->right == NULL){
+      root->right = toInsert;
+    }else{
+      insert(&root->right, toInsert);
+    }
+  }
+  balance(rootptr);
+}
+
+void delete(Tnode** rootptr, int value){
+  Tnode* root = *rootptr;
+  if(root == NULL){return;}
+
+  if(root->key == value && root->left == NULL && root->right == NULL){//no children
+    free(root);
+    *rootptr = NULL;
+  }else if(root->key == value && root->left == NULL){//only right child
+    *rootptr = root->right;
+    free(root);
+  }else if(root->key == value && root->right == NULL){
+    *rootptr = root->left;
+    free(root);
+  }else if(root->key == value){//two children
+    (*rootptr)->key = root->left->key; //copy up the new key from the predecessor (left)
+    balance(rootptr);
+    delete(&root->left, root->left->key); //delete the predecessor
+  }else if(value <= root->key){
+    balance(rootptr);
+    delete(&root->left, value);
+  }else{
+    balance(rootptr);
+    delete(&root->right, value);
+  }
+}
+
+void rotate(Tnode** rootptr, int dir){
+  Tnode* root = *rootptr; //this is a lot nicer than dereferencing it everywhere in the function :)
+  if(root == NULL){return;}
+
+  if(dir == R_RIGHT){
+    Tnode* newRoot = root->left;
+    root->left = newRoot->right;
+    newRoot->right = root;
+    *rootptr = newRoot;
+  }else if(dir == R_LEFT){
+    Tnode* newRoot = root->right;
+    root->right = newRoot->left;
+    newRoot->left = root;
+    *rootptr = newRoot;
+  }
+}
+
+int height(Tnode* root){
+  if(root == NULL){return 0;}
+  int lHeight = height(root->left);
+  int rHright = height(root->right);
+  return 1 + (lHeight > rHright ? lHeight : rHright);
+}
+
+void calcBalance(Tnode* root){
+  if(root == NULL){return;}
+  root->balance = height(root->left) - height(root->right);
+}
+
+void balance(Tnode** rootptr){
+  Tnode* root = *rootptr;
+  if(root == NULL){return;}
+
+  calcBalance(root);
+
+  if(root->balance == -2){
+    if(root->right != NULL && root->right->balance > 0){
+      rotate(&root->right, R_RIGHT);
+    }
+    rotate(rootptr, R_LEFT);
+  }else if(root->balance == 2){
+    if(root->left != NULL && root->left->balance < 0){
+      rotate(&root->left, R_LEFT);
+    }
+    rotate(rootptr, R_RIGHT);
+  }
+}
+
+void writeToFile(FILE* fileOUT, Tnode* root){
+  if(root == NULL || fileOUT == NULL){return;}
+  //preorder: current, left, right
+  int key = root->key;
+  char bits = 0;
+  if(root->left != NULL) bits |= 2;
+  if(root->right != NULL) bits |= 1;
+
+  if(DEBUG)printf("wrote node with key %d to file\n", key);
+
+  fwrite(&key, sizeof(int), 1, fileOUT);
+  fwrite(&bits, sizeof(char), 1, fileOUT);
+
+  writeToFile(fileOUT, root->left);
+  writeToFile(fileOUT, root->right);
+}
+
+Tnode* newNode(int value){
+  Tnode* toReturn = calloc(1, sizeof(Tnode));
+  toReturn->left = NULL;
+  toReturn->right = NULL;
+  toReturn->key = value;
+  return toReturn;
+}
+
+void freeTree(Tnode* root){
+  if(root == NULL){return;}
+  freeTree(root->left);
+  freeTree(root->right);
+  free(root);
+}
+//left, self, right
+void dumpTree(Tnode* root){
+  if(root == NULL){return;}
+  dumpTree(root->left);
+  printf("found key %d\n", root->key);
+  dumpTree(root->right);
+}

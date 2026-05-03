@@ -1,57 +1,79 @@
 #include "defs.h"
 
-int isBST(char*);
-int isBSTHelper(FILE*, int, int);
+Tnode* readTree(FILE* fptr);
+//local defs only
+int checkBSTBounds(Tnode*, long long, long long);
+int checkBalanced(Tnode*);
+int treeHeight(Tnode*);
 
-int isBal(char*);
-
-//do some checks on the input tree FILE (not actually a tree)
 int eval(char* inputFile){
   FILE* fptr = fopen(inputFile, FILE_READ_FLAG);
+  if(fptr == NULL){//can't open at all
+    fprintf(stdout, "-1,%d,%d\n", 0, 0);
+    return EXIT_FAILURE;
+  }
 
-  int goodFile = ((fptr == NULL) ? -1 : 1);
-  int goodBst = isBST(inputFile);
-  int goodBal = isBal(inputFile);
+  Tnode* root = readTree(fptr);
 
-  printf("%d,%d,%d\n", goodFile, goodBst, goodBal);
-  
+  fclose(fptr);
+
+  int goodBst = checkBSTBounds(root, (long long)HBT_MIN - 1, (long long)HBT_MAX);
+  int goodBal = checkBalanced(root);
+
+  fprintf(stdout, "1,%d,%d\n", goodBst, goodBal);
+
+  freeTree(root);
   return EXIT_SUCCESS;
 }
 
+Tnode* readTree(FILE* fptr){
+  int key = 0;
+  char branchBits = 0;
 
-//check if the FILE (not tree) given is a valid BST; that is the left node is always smaller than the right
-int isBST(char* filename){
-  FILE* fptr = fopen(filename, FILE_READ_FLAG);
+  if(fread(&key, sizeof(int), 1, fptr) != 1){return NULL;}
+  if(fread(&branchBits, sizeof(char), 1, fptr) != 1){return NULL;}
+  Tnode* node = newNode(key);
+
+  if(node == NULL){return NULL;}
+
+  if(branchBits & 2){//left child
+    node->left = readTree(fptr);
+  }
+  if(branchBits & 1){//right child
+    node->right = readTree(fptr);
+  }
+  return node;
+}
+
+int checkBSTBounds(Tnode* root, long long minExclusive, long long maxInclusive){
+  if(root == NULL){return 1;}
+  long long k = (long long)root->key;
   
-  isBSTHelper(fptr, 0, 0); //start recursive helper
-
-  fclose(fptr);
-  return 1; //succeed
+  if(k <= minExclusive || k > maxInclusive){return 0;}
+  
+  int left  = checkBSTBounds(root->left,  minExclusive, k);
+  int right = checkBSTBounds(root->right, k, maxInclusive);
+  
+  return left && right;
 }
 
-//helper to determine if tree is a BST
-int isBSTHelper(FILE* fptr, int dir, int parentVal){
-  int leftSide = 1, rightSide = 1;
-  int key = 0, balance = 0;
-  if(fscanf(fptr, "%d %d\n", &key, &balance));
-
-  //if we are at a branch
-  if(balance == BRANCH){
-
-    leftSide = isBSTHelper(fptr + STEP, 0, key);
-    rightSide = isBSTHelper(fptr + 2*STEP, 1, key);
-
-  //if we are at a leaf
-  }else if(balance == LEAF){
-    if(!dir){ //left leaf
-      return parentVal >= key; //true if previous node is >= this one
-    }else{ //right leaf
-      return parentVal < key; //true if previous node is < this one
-    }
-  } 
-  return leftSide * rightSide; //returns zero if either side failed (whole tree fails)
+int treeHeight(Tnode* root){
+  if(root == NULL){return -1;}
+  
+  int l = treeHeight(root->left);
+  int r = treeHeight(root->right);
+  
+  return 1 + (l > r ? l : r);
 }
 
-int isBal(char* inputFile){
-  return 0;
+int checkBalanced(Tnode* root){
+  if(root == NULL){return 1;}//obv need base case lol
+  
+  int lh = treeHeight(root->left);
+  int rh = treeHeight(root->right);
+  
+  int diff = lh - rh;
+  if(diff < -1 || diff > 1){return 0;}
+  
+  return checkBalanced(root->left) && checkBalanced(root->right);
 }

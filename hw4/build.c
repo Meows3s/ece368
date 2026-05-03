@@ -1,88 +1,126 @@
 #include "defs.h"
 
+int height(Tnode*); //needed by balance() below
+
 int buildTree(char* inputFile, char* outputFile){
   FILE* fptrIN = fopen(inputFile, FILE_READ_FLAG);
   FILE* fptrOUT = fopen(outputFile, FILE_WRITE_FLAG);
-  if(fptrIN == NULL || fptrOUT == NULL){
+
+  //prints following spec
+  if(fptrIN == NULL){
+    fprintf(stdout, "-1\n");
+    if(fptrOUT) fclose(fptrOUT);
+    return EXIT_FAILURE;
+  }
+  if(fptrOUT == NULL){
+    fclose(fptrIN);
     return EXIT_FAILURE;
   }
 
   int key;
   char op;
-  int first = 1;
-  Tnode* root;
+  Tnode* root = NULL;
 
   while(1){
-    
-    if(fread(&key, sizeof(int), 1, fptrIN));
-    if(fread(&op, sizeof(char), 1, fptrIN));
-
-    if(feof(fptrIN)){break;} //check for end of file here because fptr will move after freading
-
-    if(first){//load the first node
-      first = 0;
-      root = newNode(key);
-      continue; //skip this iteration
+    if(fread(&key, sizeof(int), 1, fptrIN) != 1){
+      if(feof(fptrIN)){break;}
+      fprintf(stdout, "0\n"); //read error
+      writeToFile(fptrOUT, root);
+      freeTree(root);
+      fclose(fptrIN);
+      fclose(fptrOUT);
+      return EXIT_FAILURE;
+    }
+    if(fread(&op, sizeof(char), 1, fptrIN) != 1){
+      fprintf(stdout, "0\n"); //read error
+      writeToFile(fptrOUT, root);
+      freeTree(root);
+      fclose(fptrIN);
+      fclose(fptrOUT);
+      return EXIT_FAILURE;
     }
 
-    if(DEBUG)printf("read value: %d and op %c\n", key, op);
-    
+    if(DEBUG)fprintf(stderr, "read value: %d and op %c\n", key, op);
+
     if(op == INSERT){
       Tnode* toInsert = newNode(key);
-      if(DEBUG)printf("inserting node with key %d\n", toInsert->key);
-      insert(root, toInsert);
+      if(toInsert == NULL){
+        fprintf(stdout, "0\n"); //alloc failed (you better hope this doesnt happen)
+        writeToFile(fptrOUT, root);
+        freeTree(root);
+        fclose(fptrIN);
+        fclose(fptrOUT);
+        return EXIT_FAILURE;
+      }
+      if(DEBUG)fprintf(stderr, "inserting node with key %d\n", toInsert->key);
+      insert(&root, toInsert);
     }else if(op == DELETE){
-      if(DEBUG)printf("deleting node with key %d\n", key);
+      if(DEBUG)fprintf(stderr, "deleting node with key %d\n", key);
       delete(&root, key);
     }
-    //balance(root);
   }
-  
-  dumpTree(root); 
 
-  if(DEBUG)printf("writing to output file...\n");
+  fprintf(stdout, "1\n");
+
+  if(DEBUG)fprintf(stderr, "writing to output file...\n");
   writeToFile(fptrOUT, root);
 
+  freeTree(root);
   fclose(fptrIN);
   fclose(fptrOUT);
- return EXIT_SUCCESS;//success
+  return EXIT_SUCCESS; //success
 }
 
-void insert(Tnode* root, Tnode* toInsert){
-  if(root == NULL){return;}
-
-  if(toInsert->key <= root->key){//go left
-    if(root->left == NULL){
-      root->left = toInsert;
-    }else{
-      insert(root->left, toInsert);
-    }
-  }else{
-    if(root->right == NULL){
-      root->right = toInsert;
-    }else{
-      insert(root->right, toInsert);
-    }
+void insert(Tnode** rootptr, Tnode* toInsert){
+  if(*rootptr == NULL){//base case: empty slot found
+    *rootptr = toInsert;
+    return;
   }
+
+  Tnode* root = *rootptr;
+
+  if(toInsert->key <= root->key){//go left (equal keys also go left per spec)
+    insert(&root->left, toInsert);
+  }else{
+    insert(&root->right, toInsert);
+  }
+
+  calcBalance(root);
+  balance(rootptr);
 }
 
 void delete(Tnode** rootptr, int value){
   Tnode* root = *rootptr;
   if(root == NULL){return;}
 
-  if(root->key == value && root->left == NULL && root->right == NULL){//no children
+  if(value < root->key){
+    delete(&root->left, value);
+  }else if(value > root->key){
+    delete(&root->right, value);
+  }else if(root->left == NULL && root->right == NULL){//no children
     free(root);
     *rootptr = NULL;
-  }else if(root->key == value && root->left == NULL){//only right child
+    return;
+  }else if(root->left == NULL){//only right child
     *rootptr = root->right;
     free(root);
-  }else if(root->key == value){//two children
-    (*rootptr)->key = root->left->key; //copy up the new key from the predecessor (left)
-    delete(&root->left, root->left->key); //delete the predecessor
-  }else if(value <= root->key){
-    delete(&root->left, value);
-  }else{
-    delete(&root->right, value);
+    return;
+  }else if(root->right == NULL){//only left child
+    *rootptr = root->left;
+    free(root);
+    return;
+  }else{//two children, replace with in-order predecessor rightmost of left subtree
+    Tnode** predPtr = &root->left;
+    while((*predPtr)->right != NULL){
+      predPtr = &(*predPtr)->right;
+    }
+    root->key = (*predPtr)->key;//copy up predecessor key
+    delete(&root->left, root->key);//delete the predecessor
+  }
+
+  if(*rootptr != NULL){
+    calcBalance(*rootptr);
+    balance(rootptr);
   }
 }
 
@@ -92,54 +130,88 @@ void rotate(Tnode** rootptr, int dir){
 
   if(dir == R_RIGHT){
     Tnode* newRoot = root->left;
+    if(newRoot == NULL){return;}
+
     root->left = newRoot->right;
     newRoot->right = root;
     *rootptr = newRoot;
+    
+    calcBalance((*rootptr)->right);//recalc old root first, then new root
+    calcBalance(*rootptr);
   }else if(dir == R_LEFT){
     Tnode* newRoot = root->right;
+    if(newRoot == NULL){return;}
+    
     root->right = newRoot->left;
     newRoot->left = root;
     *rootptr = newRoot;
+    
+    calcBalance((*rootptr)->left); //recalc old root first, then new root
+    calcBalance(*rootptr);
+  }
+}
+
+void balance(Tnode** rootptr){
+  if(*rootptr == NULL){return;}
+
+  (*rootptr)->balance = height((*rootptr)->left) - height((*rootptr)->right);
+
+  if((*rootptr)->balance == 2){ //left heavy
+    Tnode* lc = (*rootptr)->left;
+    lc->balance = height(lc->left) - height(lc->right);
+    if(lc->balance < 0){rotate(&(*rootptr)->left, R_LEFT);} //LR case
+    
+    rotate(rootptr, R_RIGHT);
+  }else if((*rootptr)->balance == -2){ //right heavy
+    Tnode* rc = (*rootptr)->right;
+    rc->balance = height(rc->left) - height(rc->right);
+    if(rc->balance > 0){rotate(&(*rootptr)->right, R_RIGHT);} //RL case
+    
+    rotate(rootptr, R_LEFT);
   }
 }
 
 int height(Tnode* root){
-  if(root == NULL){return 0;}
+  if(root == NULL){return -1;}
+  
   int lHeight = height(root->left);
-  int rHright = height(root->right);
-  return 1 + (lHeight > rHright ? lHeight : rHright);
+  int rHeight = height(root->right);
+  
+  return 1 + (lHeight > rHeight ? lHeight : rHeight);
 }
 
-void calcBalance(Tnode* root){
+void calcBalance(Tnode* root){ //bottom-up so children are accurate before parent
   if(root == NULL){return;}
+  
   calcBalance(root->left);
   calcBalance(root->right);
-  root->balance = height(root->right) - height(root->left);//TODO: make sure this complies
+  
+  root->balance = height(root->left) - height(root->right);
 }
 
 void writeToFile(FILE* fileOUT, Tnode* root){
   if(root == NULL || fileOUT == NULL){return;}
   //preorder: current, left, right
   int key = root->key;
-  char balance = root->balance;
+  char branchBits = 0;
+  if(root->left  != NULL){branchBits |= 2;} //bit 1: has left child
+  if(root->right != NULL){branchBits |= 1;} //bit 0: has right child
 
-  if(DEBUG)printf("wrote node with key %d to file\n", key);
+  if(DEBUG)fprintf(stderr, "wrote node with key %d to file\n", key);
 
   fwrite(&key, sizeof(int), 1, fileOUT);
-  fwrite(&balance, sizeof(char), 1, fileOUT);
+  fwrite(&branchBits, sizeof(char), 1, fileOUT);
 
   writeToFile(fileOUT, root->left);
   writeToFile(fileOUT, root->right);
 }
 
 Tnode* newNode(int value){
-
   Tnode* toReturn = calloc(1, sizeof(Tnode));
+  if(toReturn == NULL){return NULL;}
   toReturn->left = NULL;
   toReturn->right = NULL;
-
   toReturn->key = value;
-
   return toReturn;
 }
 
@@ -153,6 +225,6 @@ void freeTree(Tnode* root){
 void dumpTree(Tnode* root){
   if(root == NULL){return;}
   dumpTree(root->left);
-  printf("found key %d\n", root->key);
+  fprintf(stderr, "found key %d\n", root->key);
   dumpTree(root->right);
 }

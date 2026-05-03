@@ -19,7 +19,7 @@
 
 #define STEP (sizeof(char) *  5)
 
-#define DEBUG 1
+#define DEBUG 0
 
 //conversions
 int treeBtoC(char* inf, char* outf);
@@ -38,7 +38,8 @@ Tnode* newNode(int value);
 int buildTree(char*, char*);
 void writeToFile(FILE*, Tnode*);
 
-void insert(Tnode*, Tnode*);
+void balance(Tnode**);
+void insert(Tnode**, Tnode*);
 void delete(Tnode**, int);
 void rotate(Tnode**, int);
 void calcBalance(Tnode*);

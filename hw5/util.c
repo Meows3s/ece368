@@ -63,6 +63,9 @@ node* newNode(){
     toReturn->closestDir[n] = LEFT;
   }
 
+  toReturn->pos[0] = -1;
+  toReturn->pos[1] = -1;
+
   toReturn->nbor = calloc(4, sizeof(node*));
   toReturn->closest = calloc(4, sizeof(node*));
 
@@ -73,7 +76,7 @@ node* newNode(){
 graph* newGraph(int nrow, int ncol){
   graph* G = calloc(1, sizeof(graph));
   
-  ncol = ncol + 1; //add an extra row at the end for the end nodes
+  ncol = ncol + 1; //add an extra column at the end for the end nodes
 
   G->ncol = ncol;
   G->nrow = nrow;
@@ -89,6 +92,8 @@ graph* newGraph(int nrow, int ncol){
     for(int c = 0; c < ncol; c++){
       if(DEBUG)printf("init node at (%d,%d)\n", r, c);
       G->data[r][c] = newNode();
+      G->data[r][c]->pos[0] = r;
+      G->data[r][c]->pos[1] = c;
     }
   }
 

@@ -10,8 +10,8 @@ graph* getNodesFromFile(char* filename){
   
   graph* G = newGraph(nrow, ncol);
   
-  if(DEBUG)printf("setting up graph of size (%d,%d)\n",nrow, ncol);
-
+  if(DEBUG)printf("setting up graph of size (%d,%d)\n",G->nrow, G->ncol);
+  
   //for each row, load all of the columns
   int isConnected = 0;
 
@@ -28,7 +28,7 @@ graph* getNodesFromFile(char* filename){
 
       G->data[r+1][c]->pos[0] = r+1;
       G->data[r+1][c]->pos[1] = c;
-
+  
       if(DEBUG){
         printf("bridge = %d at (%d,%d)\n",isConnected, r, c);
         printf("bridge = %d at (%d,%d)\n",isConnected, r+1, c);
@@ -36,11 +36,10 @@ graph* getNodesFromFile(char* filename){
     }
 
     //last column of row is the end node and will never have a bridge but we still want to set the pos
-    G->data[r][G->ncol-1]->pos[0] = r;
-    G->data[r][G->ncol-1]->pos[1] = G->ncol-1;
 
     if(fscanf(fptr, "\n")); //move to next line
   }
+
   if(DEBUG)printf("done loading bridges\n");
   
   fclose(fptr);

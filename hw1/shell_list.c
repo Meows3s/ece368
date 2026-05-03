@@ -1,88 +1,129 @@
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "sequence.h"
 #include "shell_list.h"
 
-#define DEBUG 0
+#define DEBUG 0 //not needed anymore lol
 
-int getList(Node*, FILE*);
-Node* getNextNode(Node*);
-int List_Save_To_File(char*, Node*);
-Node* List_Load_From_File(char*, int*);
+static Node* getNodeAt(Node*, int);
+static int listLength(Node*);
 
-Node* List_Shellsort(Node* list, long* n_comp){
-  //*n_comp = (list->value % 1000)*(list->value % 1000) ;//random value for testing
-  return list;
+static Node* getNodeAt(Node* head, int index){
+  for(int i = 0; i < index; i++){
+    if(head == NULL) return NULL;
+    head = head->next;
+  }
+  return head;
+}
+
+static int listLength(Node* head){
+  int count = 0;
+  while(head != NULL){ count++; head = head->next; }
+  return count;
+}
+
+static void sortKsubseqList(Node* head, int n, int start, int k, long* n_comp){
+  int count = 0;
+  for(int i = start; i < n; i += k) count++;
+
+  if(count < 2) return;
+  int last_exchange = count;
+
+  int sorted = 0;
+  while(!sorted){
+    sorted = 1;
+    int last_element = last_exchange - 1;
+
+    for(int j = 0; j < last_element; j++){
+      Node* a = getNodeAt(head, start + j * k);
+      Node* b = getNodeAt(head, start + (j + 1) * k);
+
+      (*n_comp)++;
+      if(a->value > b->value){
+        long temp = a->value;
+        a->value = b->value;
+        b->value = temp;
+        last_exchange = j + 1;
+        sorted = 0;
+      }
+    }
+  }
 }
 
 Node* List_Load_From_File(char* filename, int* status){
   FILE* fptr = fopen(filename, "rb");
 
-  if(fptr == NULL){ //if the file fails to open
-    *status = -1; //fail
+  //file validity check
+  if(fptr == NULL){
+    *status = -1;
     return NULL;
-  }else{
-    *status = 1; //success
   }
 
-
-  Node* head = calloc(1, sizeof(Node));
-  Node* toReturn = head;
-  if(DEBUG)printf("file opened\n");
-  
+  Node* head = NULL;
+  Node* tail = NULL;
   long thisLong = 0;
+
   while(fread(&thisLong, sizeof(long), 1, fptr) == 1){
-    head->value = thisLong;
-    if(DEBUG)printf("read %ld\n", head->value);
-    head->next = calloc(1, sizeof(Node*));
-    head = head->next;
+    Node* newNode = calloc(1, sizeof(Node));
+    if(newNode == NULL){
+      *status = -1;
+      while(head != NULL){ Node* tmp = head->next; free(head); head = tmp; }
+      fclose(fptr);
+      return NULL;
+    }
+    newNode->value = thisLong;
+    newNode->next = NULL;
+
+    if(head == NULL){ head = newNode; tail = newNode; }
+    else { tail->next = newNode; tail = newNode; }
   }
-  head = NULL;
 
-  if(DEBUG)printf("done reading from file\n");
-
+  *status = 0;
   fclose(fptr);
-  return toReturn; //return the list
+  return head;
 }
 
 int List_Save_To_File(char* filename, Node* head){
   FILE* fptr = fopen(filename, "wb");
-  if(fptr == NULL){return -1;} //return if file fails to open
-  
-  int numElements = 0;
-  
-  while(head->next != NULL){
-    if(DEBUG)printf("wrote %ld to file.\n", head->value);
+  if(fptr == NULL){ return -1; }
 
-    fwrite(&(head->value), sizeof(long), 1, fptr); //write the contents of this node to the file
-    head = head->next; //we are NOT asked to free the list here, so just move to the next node
+  int numElements = 0;
+
+  while(head != NULL){
+    fwrite(&(head->value), sizeof(long), 1, fptr);
+    head = head->next;
     numElements++;
   }
 
-  if(DEBUG)printf("wrote %d elements to file.\n", numElements);
-
+  fclose(fptr);
   return numElements;
 }
 
-/*
-//recursive function to generate the list
-int getList(Node* thisNode, FILE* fptr){
-  long thisLong = 0;
+//actually do the sorting
+Node* List_Shellsort(Node* list, long* n_comp){
+  *n_comp = 0;
 
-  if(fread(&thisLong, sizeof(long), 1, fptr) != 1) {
-    thisNode = NULL;
-    return 0;
+  if(list == NULL) return NULL;
+
+  int n = listLength(list);
+  int numKs = 0;
+  long* kVals = Generate_2p3q_Seq(n, &numKs);
+
+  if(kVals == NULL){
+    sortKsubseqList(list, n, 0, 1, n_comp);
+    return list;
   }
 
-  if(DEBUG) printf("long read: %ld\n", thisLong);
-  thisNode->value = thisLong;
+  for(int i = numKs - 1; i >= 0; i--){
+    int k = (int)kVals[i];
+    for(int start = 0; start < k && start < n; start++){
+      sortKsubseqList(list, n, start, k, n_comp);
+    }
+  }
 
-  //allocate next node and recurse
-  thisNode->next = calloc(1, sizeof(Node));
-  return getList(thisNode->next, fptr);
+
+
+  free(kVals);
+  return list;
 }
-
-//takes in the current node and sets its next pointer to the next node
-Node* getNextNode(Node* thisNode){
-  thisNode->next = calloc(1, sizeof(Node));
-  return thisNode->next;
-}*/

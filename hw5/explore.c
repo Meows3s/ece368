@@ -23,12 +23,23 @@ void shortestFromAny(graph** G){
 }
 
 //find shortest path from row X on the left to any row on the right
-void shortestFromRow(graph** G, int startRow){
+int shortestFromRow(graph** G, int startRow){
   queue* Qhead = newQueue();
   (*G)->data[startRow][0]->distFromSource[LEFT] = 0;
   enqueue(Qhead, (*G)->data[startRow][0], LEFT);
   traverse(G, Qhead);
   freeQueue(Qhead);
+
+  int minDist = MAX_DIST;
+  for(int r = 0; r < (*G)->nrow; r++){
+    for(int d = 0; d < 4; d++){ //check each direction
+      if((*G)->data[r][(*G)->ncol-1]->distFromSource[d] < minDist && d != LEFT){
+          minDist = (*G)->data[r][(*G)->ncol-1]->distFromSource[d];
+      }
+    } 
+  }
+
+  return minDist; 
 }
 
 void traverse(graph** G, queue* Qhead){
@@ -64,18 +75,7 @@ void enqueueNbors(queue* Qhead, node* N, int inDir){
 
     if(outDir == inDir){continue;} //do not go backwards on the same node
 
-    node* thisNbor = N->nbor[outDir];
-    
-    /*
-    // special case: pre-existing board, force waypoint into path
-    if(N->bridge[outDir] == 1){
-      if(thisNbor->seen[outDir] == UNSEEN && N->distFromSource[inDir] < thisNbor->distFromSource[outDir]){
-        thisNbor->distFromSource[outDir] = N->distFromSource[inDir]; // cost 0
-        thisNbor->closest[outDir] = N;
-        thisNbor->closestDir[outDir] = inDir;
-        enqueue(Qhead, thisNbor, outDir);
-      }
-    }*/
+    node* thisNbor = N->nbor[outDir]; 
 
     int thisMoveCost = rotCost(N, inDir, outDir);
     int newDist = N->distFromSource[inDir] + thisMoveCost;
@@ -101,13 +101,10 @@ int rotCost(node* currentNode, int inDir, int outDir){
   //if there is already a board in the desired direction, cost is zero
 
   if(currentNode->bridge[outDir]){
+    //printf("cost 0: inDir=%d outDir=%d at (%d,%d)\n", inDir, outDir, currentNode->pos[0], currentNode->pos[1]); 
     return 0;
+    
   }
-  /*else if(currentNode->bridge[outDir == 3 ? 0 : outDir + 1] || currentNode->bridge[outDir == 0 ? 3 :outDir - 1] || ((inDir == 3 ? 0 : inDir + 1) == outDir) || ((inDir == 0 ? 3 : inDir - 1) == outDir)){ //check adjacent bridge connections
-    return 1;
-  }else{
-    return 2; //otherwise 2 rotations are required
-  }*/
 
   int minCost = 2; //worst case
   for(int d = 0; d < 4; d++){ //check every direction
@@ -118,7 +115,8 @@ int rotCost(node* currentNode, int inDir, int outDir){
       if(cost < minCost) minCost = cost;
     }
   }
-  if(DEBUG)printf("found path of %d cost\n", minCost);
+
+  //printf("cost %d: inDir=%d outDir=%d at (%d,%d)\n", minCost, inDir, outDir, currentNode->pos[0], currentNode->pos[1]);
   return minCost;
 }
 
@@ -163,7 +161,7 @@ queue* buildPath(graph* G){
   }
   
   //follow the closest pointer back the the left edge of the board
-  int pathIndex = minDist + 10000;
+  int pathIndex = G->nrow * G->ncol * 3;
 
 while(endNode != NULL){
  
@@ -211,32 +209,16 @@ void writeBoard(FILE* fptr, node* a, node* b){
   fprintf(fptr, "(%d,%d)(%d,%d)\n",a->pos[0], a->pos[1], b->pos[0], b->pos[1]); //where the board was before
 }
 
-node* findPivot(node* thisNode, node* nextNode){
-  for(int d = 0; d < 4; d++){
-    node* candidate = thisNode->nbor[d];
-    if(candidate == NULL) continue;
-    for(int d2 = 0; d2 < 4; d2++){
-      if(nextNode->nbor[d2] == candidate) return candidate;
-    }
-  }
-  return NULL;
-}
-
-
-
 //write the path to a file
 void writePath(char* filename, graph* G, queue* path){
-  
-  
- FILE* fptr = NULL;
+  FILE* fptr = NULL;
   openFile(filename, WRITE_FLAG, &fptr);
   
   if(DEBUG){
     printf("\nsaving the following queue to file:");
     dumpQueue(path);
   }
-
-  node* prevNode = NULL;
+  
   queue thisStep = dequeue(&path);
   queue nextStep = dequeue(&path);
 
@@ -249,22 +231,20 @@ void writePath(char* filename, graph* G, queue* path){
     node* thisNode = thisStep.data;
     node* nextNode = nextStep.data;
     
-    // skip if this is a duplicate of the last written board
+    //skip if this is a duplicate of the last written board
     if((thisNode == lastA && nextNode == lastB) || (thisNode == lastB && nextNode == lastA)){
-        prevNode = thisNode;
         thisStep = nextStep;
         nextStep = dequeue(&path);
         continue;
     }
     
     writeBoard(fptr, thisNode, nextNode);
+    
     lastA = thisNode;
     lastB = nextNode;
-
-    prevNode = thisNode;
     thisStep = nextStep;
     nextStep = dequeue(&path);
-}
+  }
 
-  fclose(fptr);
+fclose(fptr);
 }

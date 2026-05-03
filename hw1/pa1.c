@@ -5,56 +5,71 @@
 #include "shell_list.h"
 #include "sequence.h"
 
-#define DEBUG 0
 void freeList(Node*);
 void dump(long*, int);
 void listDump(Node*);
 
 int main(int argc, char** argv){
+    if(argc != 4){
+    fprintf(stderr, "Usage: %s -a/-l input.b output.b\n", argv[0]);
+    return EXIT_FAILURE;
+  }
 
-  char* flag = argv[1]; //second char of flag bc first one is the dash
-  char* fileIn = argv[2]; //zero is the program name
+  char* flag = argv[1];
+  char* fileIn = argv[2];
   char* fileOut = argv[3];
   
-  if(flag[1] == 'a'){//use array method
+  if(flag[1] == 'a'){
     int numArray = 0;
     long numComp = 0;
-    long* arrayToSort = Array_Load_From_File(fileIn, &numArray); //load array
+    long* arrayToSort = Array_Load_From_File(fileIn, &numArray);
     
-    if(DEBUG)dump(arrayToSort, numArray);
+    if(arrayToSort == NULL){
+      return EXIT_FAILURE;
+    }
 
-    Array_Shellsort(arrayToSort, numArray, &numComp); //sort array
+    Array_Shellsort(arrayToSort, numArray, &numComp);
     
-    if(DEBUG)dump(arrayToSort, numArray);
+    int numWritten = Array_Save_To_File(fileOut, arrayToSort, numArray);
+    free(arrayToSort);
 
-    Array_Save_To_File(fileOut, arrayToSort, numArray);
+    if(numWritten == -1){//check save failure??????
+      return EXIT_FAILURE;
+    }
+
     printf("%ld\n", numComp);
 
-  }else if(flag[1] == 'l'){//use list method
+  }else if(flag[1] == 'l'){
     
     int status = 0;
     long numComp = 0;
 
     Node* head = List_Load_From_File(fileIn, &status);
 
-    if(DEBUG)listDump(head);
+    if(status == -1){//check for load failure
+      return EXIT_FAILURE;
+    }
+
+
 
     List_Shellsort(head, &numComp);
 
-    if(DEBUG)listDump(head);
-
-    List_Save_To_File(fileOut, head);
+    int numWritten = List_Save_To_File(fileOut, head);
     
-    freeList(head); //free the linked list
+    freeList(head);
+
+    if(numWritten == -1){//check save failure
+      return EXIT_FAILURE;
+    }
+
     printf("%ld\n", numComp);
 
   }else{
-    printf("incorrect arguments.\n");
+    return EXIT_FAILURE;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
-
 
 void freeList(Node* head){
   while(head->next != NULL){

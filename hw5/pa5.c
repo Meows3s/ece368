@@ -25,15 +25,23 @@ int main(int argc, char** argv){
   freeGraph(G);
 
   //output file two
-  /*graph* G = getNodesFromFile(inputFile);
-  for(int r = 0; r < G->nrow; r++){
-    shortestFromOne(&G);
-    queue* thisRowPath = buildPath(G);
-    writePath(outputFile2, thisRowPath);
-    freeQueue(thisRowPath);
-  }
-  freeGraph(G);
-*/
+  graph* Gt = getNodesFromFile(inputFile);
+  int nrow = Gt->nrow;
 
-  return 0;
+  FILE* fptr2 = fopen(outputFile2, WRITE_FLAG);
+  if(fptr2 == NULL){
+    return EXIT_FAILURE;
+  }
+
+  for(int r = 0; r < nrow; r++){
+    int dist = shortestFromRow(&Gt, r);
+    
+    fprintf(fptr2, "%d\n", dist);
+    //reset graph
+    freeGraph(Gt);
+    Gt = getNodesFromFile(inputFile);
+  }
+  freeGraph(Gt);
+  fclose(fptr2);
+  return EXIT_SUCCESS;
 }

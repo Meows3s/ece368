@@ -9,7 +9,7 @@ int getFileLength(FILE*);
 
 void sortKsubseq(long* toSort, int n, int start, int k, long* n_comp){
   long count = 0;
-  for(long i = start; i < n; i += k){ //count the number of subarrays, increment by a
+  for(long i = start; i < n; i += k){
     count++;
   }  
   for(long i = 0; i < count - 1; i++){
@@ -18,10 +18,8 @@ void sortKsubseq(long* toSort, int n, int start, int k, long* n_comp){
       long idx1 = start + j * k;
       long idx2 = start + (j + 1) * k;
       
-      (*n_comp)++; //increment compare
-
-      if(toSort[idx1] < toSort[idx2]){//swap
-        
+      (*n_comp)++;
+      if(toSort[idx1] > toSort[idx2]){
         long temp = toSort[idx1];
         toSort[idx1] = toSort[idx2];
         toSort[idx2] = temp;
@@ -34,7 +32,7 @@ void everyKsort(long* toSort, int n, long* kVals, int numKs, long* n_comp){
   for (int i = 0; i < numKs; i++){
     if(DEBUG)printf("sorting for this kval %ld\n", kVals[i]);
     for(int start = 0; start < kVals[i] && start < n; start++){ //for every k
-      sortKsubseq(toSort, n, start, kVals[i], n_comp); //sort that subsequence according to k
+      sortKsubseq(toSort, n, start, kVals[i], n_comp);//sort that subsequence according to k
     }
   }    
 }
@@ -42,10 +40,10 @@ void everyKsort(long* toSort, int n, long* kVals, int numKs, long* n_comp){
 void Array_Shellsort(long* array, int size, long* n_comp){
   int numKs = 0;
   long* kVals = Generate_2p3q_Seq(size, &numKs);
- 
+  //long* kVals = gen() //old code
   if(DEBUG)printf("starting sorting of array size %d and numKs %d\n", size, numKs);
   
-  everyKsort(array, size, kVals, numKs, n_comp); //run ksort for every value of k in this array
+  everyKsort(array, size, kVals, numKs, n_comp);//run k-sort for every value of k in this array
 }
 
 long* Array_Load_From_File(char* filename, int* size){
@@ -57,8 +55,8 @@ long* Array_Load_From_File(char* filename, int* size){
     return NULL;
   }
 
-  *size = getFileLength(fptr); //count N elements
-  long* array = calloc(*size, sizeof(long)); //allocate N elements
+  *size = getFileLength(fptr);//count N elements
+  long* array = calloc(*size, sizeof(long));//allocate n elements
   int numR = fread(array, sizeof(long), *size, fptr);
 
   if(DEBUG)printf("counted %d elements; read %d elements.\n", *size, numR);
@@ -86,7 +84,7 @@ int Array_Save_To_File(char* filename, long* array, int size){
 int getFileLength(FILE* fptr){
   int numElements = 0;
   long read;
-
+  
   while(fread(&read, sizeof(long), 1, fptr) == 1) numElements++;
   
   rewind(fptr);

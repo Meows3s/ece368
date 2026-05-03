@@ -25,28 +25,27 @@ int seq_util(int less_than, long* seq, int len){
    
   int index = 0, next_2 = 0, next_3 = 0, pt2 = 0, pt3 = 0;
   //long* seq = calloc((len == -1 ? less_than + 2 : len), sizeof(long)); //allocate extra memory for an initial count. kinda jank ngl
-  seq[0] = 1; //set first element
+    
+  seq[0] = 1;
 
-  //count the number of elements so we can initialize the array without using a linked list
-  while(next_2 < less_than && next_3  < less_than){
+  while(next_2 < less_than && next_3 < less_than){
     next_2 = seq[pt2] * 2;
     next_3 = seq[pt3] * 3;
-    index++; //keep track of the number of elements and current seq index
+    index++;
 
-    if(next_2 < next_3){//if 2 is less than 3, pick 2 and increment its index
+    if(next_2 < next_3){
       seq[index] = next_2;
       pt2++;
-      if(DEBUG) printf("%d (next2) at index %d pt2 %d\n", next_2, index, pt2);
-    }else if(next_2 > next_3){//if 3 is less than 2, pick 3 and increment its index
+    }else if(next_2 > next_3){
       seq[index] = next_3;
       pt3++;
-      if(DEBUG) printf("%d (next3) at index %d pt3 %d\n", next_3, index, pt2);
-    }else{ //if they are equal, don't add this to the list and increment one of the indicies
+    }else{
+      seq[index] = next_2;
       pt2++;
-      index--;
+      pt3++;
     }
   }
-  index++; //increment 1 more time to include zero-th element
+  index++; 
 
   if(DEBUG) printf("final number of elements is %d\n", index);
   

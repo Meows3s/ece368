@@ -8,59 +8,57 @@ int writeBound(tree* root, char* outputFile){
   }
 
   moStack* stackHead = newStack();
+
+  root->oX = 0;
+  root->oY = 0;
+
   push(&stackHead, root);
 
   tree* thisNode = NULL;
-  tree* lastWritten = root->left;
-  tree* lastSeen = NULL;
 
-  //int totalWidth = root->width
-  int totalHeight = root->height;
-  int Xplace = 0, Yplace = totalHeight;
-
-  int wroteLeft = 0;
-
-  //
+  //update the coordinates
   while(!stackEmpty(stackHead)){
-    
-    //dumpStack(stackHead);
     thisNode = pop(&stackHead);
 
-    //left, right, self
+    //want to set the dimensions with a pre order traversal then print with a post order one
     if(thisNode->divType == LEAF){//leaf node, claims a place on the packing
+      //do nothing
+    }else if(thisNode->divType == HORIZ){
+      thisNode->right->oX = thisNode->oX;
+      thisNode->right->oY = thisNode->oY;
+      thisNode->left->oX = thisNode->oX;
+      thisNode->left->oY = thisNode->oY + thisNode->right->height;
 
-      if(lastSeen->divType == HORIZ){
-        if(wroteLeft){//lower node
-          wroteLeft = 0;
-          Yplace -= lastSeen->right->height;
-        }else{//upper node
-          wroteLeft = 1;
-          Yplace -= lastWritten->height;
-        }
-        fprintf(fptr, "%d((%d,%d)(%d,%d))\n", thisNode->blockNum, thisNode->width, thisNode->height, Xplace, Yplace); 
-      }
- 
-      if(lastSeen->divType == VERT){
-        if(wroteLeft){//right node
-          wroteLeft = 0;
-          Xplace += lastWritten->width;
-        }else{//left node
-          wroteLeft = 1;
-          Yplace -= lastSeen->height;
-          //Xplace
-        }
+      push(&stackHead, thisNode->right);
+      push(&stackHead, thisNode->left);
+    
+    }else{ //branch node with tree below, add children and self to stack
+      thisNode->left->oX = thisNode->oX;
+      thisNode->left->oY = thisNode->oY;
+      thisNode->right->oX = thisNode->oX + thisNode->left->width;
+      thisNode->right->oY = thisNode->oY;
 
-        fprintf(fptr, "%d((%d,%d)(%d,%d))\n", thisNode->blockNum, thisNode->width, thisNode->height, Xplace, Yplace);
-      }
+      push(&stackHead, thisNode->right);
+      push(&stackHead, thisNode->left);
+    
+    }
+  }
+  freeStack(stackHead);
 
+  //write to the file
+  stackHead = newStack();
+  push(&stackHead, root);
+  tree* lastWritten = root->left;
+  while(!stackEmpty(stackHead)){
+    
+    thisNode = pop(&stackHead);
+
+    if(thisNode->divType == LEAF){//leaf node, claims a place on the packing
+      fprintf(fptr, "%d((%d,%d)(%d,%d))\n", thisNode->blockNum, thisNode->width, thisNode->height, thisNode->oX, thisNode->oY);
       lastWritten = thisNode;
     }else if(thisNode->divType != LEAF && thisNode->right == lastWritten){
       lastWritten = thisNode;
-      wroteLeft = 0;
     }else{ //branch node with tree below, add children and self to stack
-      wroteLeft = 0;
-      lastSeen = thisNode;
-
       push(&stackHead, thisNode);
       if(thisNode->right != NULL) push(&stackHead, thisNode->right);
       if(thisNode->left != NULL) push(&stackHead, thisNode->left);
@@ -68,8 +66,6 @@ int writeBound(tree* root, char* outputFile){
   }
   freeStack(stackHead);
   
-  
-
   fclose(fptr);
   return EXIT_SUCCESS;
 }

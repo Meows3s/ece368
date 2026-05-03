@@ -3,26 +3,24 @@
 #define HORIZ 'H'
 #define UNDEFINED 'U'
 
-typedef struct tree_{ //define the binary tree type
+typedef struct Tnode_{ //define the binary tree type
   char divType;
 
   int blockNum;
   int width;
   int height;
-  int oX; //origin x
-  int oY; //origin y
 
-  struct tree_* left;
-  struct tree_* right;
-}tree;
+  struct Tnode_* left;
+  struct Tnode_* right;
+}Tnode;
 
 typedef struct moStack_{
   struct moStack_* next;
-  tree* data;
+  Tnode* data;
 }moStack;
 
-tree* pop(moStack**);
-void push(moStack**, tree*);
+Tnode* pop(moStack**);
+void push(moStack**, Tnode*);
 
 moStack* newStack();
 void freeStack(moStack*);

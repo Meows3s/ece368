@@ -20,8 +20,8 @@ run8: pa2
 	diff examples/8.dim outputs/8.dim
 	diff examples/8.pck outputs/8.pck
 
-
-
 test1k: default
 	./pa2 examples/1K.pr outputs/1K.po outputs/1K.dim outputs/1K.pck
-	
+
+zip:
+	zip pa2.zip *.c *.h Makefile

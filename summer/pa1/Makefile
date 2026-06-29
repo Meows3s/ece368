@@ -5,6 +5,13 @@ default:
 
 clean:
 	rm pa1
+	rm pa1.zip
 
-test1:
+zip: 
+	zip pa1.zip *
+
+memcheck: default
+	valgrind --leak-check=full ./pa1
+
+run: default
 	./pa1

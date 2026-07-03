@@ -9,6 +9,7 @@ stack* newStack(int);
 stack* find(stack*, int);
 void poke(stack*, int);
 void push(stack*, int);
+void pop(stack*);
 
 int stackEmpty(stack*);
 void dumpStack(stack*);

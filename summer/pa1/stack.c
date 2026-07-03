@@ -5,6 +5,7 @@
 stack* newStack(int winNum) {
   stack* toReturn = calloc(1, sizeof(stack));
   toReturn->winNum = winNum;
+  toReturn->next = NULL;
   return toReturn;
 }
 
@@ -17,9 +18,7 @@ void push(stack* sptr, int winNum) {
 
 // returns the node before the target node
 stack* find(stack* sptr, int tgt) {
-  if (sptr == NULL || sptr->next == NULL) {
-    return NULL;
-  } // return if the head is null or if the head is the only element
+  if (sptr == NULL || sptr->next == NULL) return NULL; // return if bad head
   while (sptr->next != NULL) {
     if (sptr->next->winNum == tgt) {
       return sptr;
@@ -31,7 +30,7 @@ stack* find(stack* sptr, int tgt) {
 
 // deletes an arbitrary node on the stack
 void pop(stack* sptr) {
-  if (sptr == NULL) {
+  if (sptr == NULL || sptr->next == NULL) {
     if (DEBUG) printf("node does not exist\n");
     return;
   }
@@ -43,24 +42,25 @@ void pop(stack* sptr) {
 
 // removes a node containing a specific value
 void poke(stack* sptr, int tgt) {
+  if (sptr == NULL) return;
   stack* prev = find(sptr, tgt);
-  if (prev == NULL) {
-    return;
-  } // value does not exist in list, return
+  if (prev == NULL) return; // value does not exist in list, return
   pop(prev);
 }
 
 int stackEmpty(stack* sptr) {
-  if (sptr != NULL && sptr->next != NULL) {
-    return 0;
+  if (sptr == NULL || sptr->next == NULL) {
+    return 1; // I guess null is empty... hopefully we never end up here
   } else {
-    return 1; // stack is considered empty if it is just a head
+    return 0;
   }
 }
 
 void dumpStack(stack* sptr) {
   sptr = sptr->next; // start at actual data instead of the head
   int count = 0;
+  printf("\n---\n");
+  printf("windows currently open:\n");
   while (sptr != NULL) {
     if (DEBUG) {
       printf("node %d contains window number %d\n", count, sptr->winNum);
@@ -70,5 +70,6 @@ void dumpStack(stack* sptr) {
     count++;
     sptr = sptr->next;
   }
-  printf("windows open: %d\n", count);
+  printf("number of windows open: %d", count);
+  printf("\n---\n");
 }

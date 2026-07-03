@@ -1,7 +1,10 @@
-default:
-	clear
-	gcc -std=c99 -pedantic -Wvla -Wall -Wshadow -g -O3 *.c -o pa1
-	@echo "done!"
+default: pa1
+	@echo done!
+
+pa1: FORCE
+	gcc -std=c11 -pedantic -Wvla -Wall -Wshadow -g -O3 *.c -o pa1
+
+FORCE: ;
 
 clean:
 	rm pa1

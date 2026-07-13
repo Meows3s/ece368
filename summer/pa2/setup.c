@@ -1,37 +1,36 @@
 #include "defs.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 // reads file into point buffer, returns number of points in buffer
 int readFile(char* filename, point** buff) {
   FILE* fptr = fopen(filename, FILE_OPEN_FLAG);
   if (fptr == NULL) return -1;
 
-  // determine file size
-  fseek(fptr, 0, SEEK_END);
-  long fileSize = ftell(fptr);
-  rewind(fptr); // reset pointer
+  // count lines
+  int Npoints = 0;
+  char c;
+  while (1) {
+    c = fgetc(fptr);
+    if (feof(fptr)) break;
+    if (c == '\n') Npoints++;
+  }
+  rewind(fptr);
 
-  *buff = calloc(fileSize, sizeof(point)); // update pointer correct size;
+  *buff = calloc(Npoints, sizeof(point));
 
-  // for loop abuse:
-  for (long i = 0; i; i++) {
+  // read in data
+  for (int i = 0; i < Npoints - 1; i++) {
     if (fscanf(fptr, "%d %d\n", &buff[i]->x, &buff[i]->y) == 0) break;
   }
 
-  return fileSize;
+  if (DEBUG) printf("read %d points\n", Npoints);
+
+  return Npoints;
 }
 
-int calcBins(point* buff, int Npoints, point upperRight, point lowerLeft) {
-  int Nbins = 0;
-  return Nbins;
-}
-
+// initializes a plane from a given buffer
 plane* createPlane(point* buff, int Npoints) {
-  plane* newPlane = calloc(1, sizeof(plane));
-
-  point upperRight;
-  point lowerLeft;
+  point upperRight = {0};
+  point lowerLeft = {0};
 
   // find the corners of the board
   int i = 0;
@@ -49,14 +48,34 @@ plane* createPlane(point* buff, int Npoints) {
     if (buff[i].y < lowerLeft.y) {
       lowerLeft.y = buff[i].y;
     }
-
     i++;
   }
 
-  calcBins(buff, Npoints, upperRight, lowerLeft);
+  int boardX = (upperRight.x + abs(lowerLeft.x));
+  int boardY = (upperRight.y + abs(lowerLeft.y));
+  int pointDensity = Npoints / (boardX * boardY);
+  int Nbins = pointDensity / TARGET_PPB; // we know how many bins there should be and know the size of the board
+  int binWidth = boardX / (sqrt(Nbins));
+
+  if (DEBUG) {
+    printf("boardX: %d\nboardY: %d\npoint density: %d\nNbins: %d\nbin width: %d\n", boardX, boardY, pointDensity, Nbins,
+           binWidth);
+  }
+
+  /*initialize plane*/
+  plane* newPlane = calloc(1, sizeof(plane));
+  newPlane->Nbins = Nbins;
+  newPlane->binWidth = binWidth;
+  newPlane->table = calloc(Nbins, sizeof(point*));
+
+  for (int b = 0; b < Nbins; b++) {
+    newPlane->table[b] = calloc(TARGET_PPB, sizeof(point));
+    newPlane->table[b][0].x = TARGET_PPB; // initialize array sizes
+  }
+
+  for (int i = 0; i < Npoints; i++) { // this is probably a segfault magnet lolol
+    int tableIdx = hash(*newPlane, buff[i]);
+  }
 
   return newPlane;
 }
-
-// attendance question: Which sorting algorithm might you have naturally used?
-// (sorting cards, etc).

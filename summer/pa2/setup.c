@@ -1,11 +1,30 @@
 #include "defs.h"
+#include <stdlib.h>
 
-// reads file into point buffer, returns number of points in buffer
-int readFile(char* filename, point** buff) {
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
+
+plane* newPlane(int Npoints, int Nbins, int binWidth) {
+  plane* toReturn = calloc(1, sizeof(plane));
+
+  toReturn->table = calloc(Nbins, sizeof(point*));
+  for (int i = 0; i < Nbins; i++) {
+    toReturn->table[i] = calloc(1, sizeof(point)); // basic init
+    toReturn->table[i][0].x = 1;
+    toReturn->table[i][0].y = 1;
+  }
+
+  toReturn->Npoints = Npoints;
+  toReturn->Nbins = Nbins;
+  toReturn->binWidth = binWidth;
+  return toReturn;
+}
+
+// Hey future me, sorry I left you this terrible mess to debug -past me
+plane* readFile(char* filename) {
   FILE* fptr = fopen(filename, FILE_OPEN_FLAG);
-  if (fptr == NULL) return -1;
+  if (fptr == NULL) return NULL;
 
-  // count lines
   int Npoints = 0;
   char c;
   while (1) {
@@ -14,27 +33,18 @@ int readFile(char* filename, point** buff) {
     if (c == '\n') Npoints++;
   }
   rewind(fptr);
+  point* buff = calloc(Npoints, sizeof(point));
 
-  *buff = calloc(Npoints, sizeof(point));
-
-  // read in data
-  for (int i = 0; i < Npoints - 1; i++) {
-    if (fscanf(fptr, "%d %d\n", &buff[i]->x, &buff[i]->y) == 0) break;
+  for (int i = 0; i < Npoints; i++) {
+    if (fscanf(fptr, "%d %d\n", &buff[i].x, &buff[i].y) == 0) break;
   }
-
   if (DEBUG) printf("read %d points\n", Npoints);
 
-  return Npoints;
-}
-
-// initializes a plane from a given buffer
-plane* createPlane(point* buff, int Npoints) {
   point upperRight = {0};
   point lowerLeft = {0};
 
   // find the corners of the board
-  int i = 0;
-  while (i != Npoints) {
+  for (int i = 0; i < Npoints; i++) {
     if (buff[i].x > upperRight.x) {
       upperRight.x = buff[i].x;
     }
@@ -48,34 +58,23 @@ plane* createPlane(point* buff, int Npoints) {
     if (buff[i].y < lowerLeft.y) {
       lowerLeft.y = buff[i].y;
     }
-    i++;
   }
 
-  int boardX = (upperRight.x + abs(lowerLeft.x));
-  int boardY = (upperRight.y + abs(lowerLeft.y));
-  int pointDensity = Npoints / (boardX * boardY);
-  int Nbins = pointDensity / TARGET_PPB; // we know how many bins there should be and know the size of the board
-  int binWidth = boardX / (sqrt(Nbins));
+  double boardX = (upperRight.x + abs(lowerLeft.x) + 1);
+  double boardY = (upperRight.y + abs(lowerLeft.y) + 1);
 
-  if (DEBUG) {
-    printf("boardX: %d\nboardY: %d\npoint density: %d\nNbins: %d\nbin width: %d\n", boardX, boardY, pointDensity, Nbins,
-           binWidth);
-  }
+  int Nbins = Npoints / TARGET_PPB; // we know how many bins there should be and know the size of the board
+  Nbins = MIN(pow(floor(sqrt(Nbins) + 1), 2), pow(ceil(sqrt(Nbins)), 2));
+  if (Nbins == 0) Nbins = 1; // there must be at least one bin
+  int binWidth = MAX(boardX, boardY) / (sqrt(Nbins));
 
   /*initialize plane*/
-  plane* newPlane = calloc(1, sizeof(plane));
-  newPlane->Nbins = Nbins;
-  newPlane->binWidth = binWidth;
-  newPlane->table = calloc(Nbins, sizeof(point*));
+  plane* newPln = newPlane(Npoints, Nbins, binWidth);
 
-  for (int b = 0; b < Nbins; b++) {
-    newPlane->table[b] = calloc(TARGET_PPB, sizeof(point));
-    newPlane->table[b][0].x = TARGET_PPB; // initialize array sizes
+  for (int p = 0; p < Npoints; p++) { // loads the points from the buffer to the plane
+    insertPoint(newPln, buff[p]);
   }
 
-  for (int i = 0; i < Npoints; i++) { // this is probably a segfault magnet lolol
-    int tableIdx = hash(*newPlane, buff[i]);
-  }
-
-  return newPlane;
+  free(buff);
+  return newPln;
 }

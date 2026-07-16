@@ -14,17 +14,17 @@ typedef struct point_ {
 
 typedef struct plane_ {
   point** table;
+  int Npoints;
   int Nbins;
   int binWidth;
 } plane;
 
 // setup.c
-plane* createPlane(point*, int);
-int readFile(char*, point**);
+plane* newPlane(int, int, int);
+plane* readFile(char*);
 
 // collide.c
+void insertPoint(plane*, point);
 int hash(plane, point);
-point* overlap(plane*, point, int);
-
-// util.c
-int max(int, int);
+plane* collide(plane*, point, int);
+void dumpPlane(plane);

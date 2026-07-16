@@ -22,7 +22,7 @@ clean:
 	rm -f $(BINS)
 
 memcheck: default
-	valgrind --leak-check=full ./pa2
+	valgrind --leak-check=full ./pa2 points.txt
 
 run: default
 	./pa2 points.txt

@@ -5,7 +5,7 @@
 
 #define FILE_OPEN_FLAG "r"
 #define TARGET_PPB 100 // target points per bin
-#define DEBUG 1
+#define DEBUG 0
 
 typedef struct point_ {
   int x;
@@ -21,6 +21,7 @@ typedef struct plane_ {
 
 // setup.c
 plane* newPlane(int, int, int);
+void freePlane(plane*);
 plane* readFile(char*);
 
 // collide.c

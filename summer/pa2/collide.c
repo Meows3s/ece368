@@ -18,6 +18,7 @@ void insertPoint(plane* pln, point pnt) {
   pln->table[tableIdx][arrayIdx] = pnt; // set point
   pln->table[tableIdx][0].x++;          // update length tracker
   pln->table[tableIdx][0].y = arrayCap;
+  pln->Npoints++;
 }
 
 int pointEqual(point a, point b) {
@@ -25,9 +26,18 @@ int pointEqual(point a, point b) {
   return 0;
 }
 
+int pointInPlane(plane pln, point pnt) {
+  for (int i = 1; i < pln.table[0][0].x; i++) {
+    if (pln.table[0][i].x == pnt.x && pln.table[0][i].y == pnt.y) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 int withinCircle(point center, int radius, point query) {
   float dist = sqrt(pow((query.x - center.x), 2) + pow((query.y - center.y), 2));
-  if (dist < radius) {
+  if (dist <= radius) {
     return 1;
   } else {
     return 0;
@@ -36,51 +46,48 @@ int withinCircle(point center, int radius, point query) {
 
 // takes the plane and a point, returns an index where the point should be
 int hash(plane pln, point input) {
-  // shift x over by the number of bits used in y
-  long long hashVal = (input.x << __builtin_clz(input.y)) + input.y;
-  long long hashVal_compare = hashVal;
-  // this is basically the same as a sequential compare on only one sequence
-  hashVal = hashVal << 1;
-  int hashedTo = ((hashVal ^ hashVal_compare) % pln.Nbins);
-  return hashedTo;
+  int cellX = input.x / pln.binWidth;
+  int cellY = input.y / pln.binWidth;
+  if (input.x < 0 && input.x % pln.binWidth != 0) cellX--;
+  if (input.y < 0 && input.y % pln.binWidth != 0) cellY--;
+
+  unsigned long long hashX = (unsigned int)cellX;
+  unsigned long long hashY = (unsigned int)cellY;
+  unsigned long long combined = hashX * 2654435761ULL + hashY * 2654435761ULL; // knuths hash multiplier
+
+  return (int)(combined % (unsigned long long)pln.Nbins); // scale to number of bins
 }
 
 // takes in a bunch of crap (duh), returns a list of colliding points
 plane* collide(plane* pln, point center, int radius) {
   if (DEBUG) printf("Checking for colliding points at <%d,%d> with radius %d\n", center.x, center.y, radius);
+  plane* collides = newPlane(0, 1, 10);
 
-  /*step one: determine the bins we need to search*/
-  int Noverlaps = (2 * radius) / (pln->binWidth);
+  int xLo = center.x - radius, xHi = center.x + radius - 1; // last included x
+  int yLo = center.y - radius, yHi = center.y + radius - 1;
 
-  point lowerLeft = center;
-  lowerLeft.x -= radius;
-  lowerLeft.y -= radius;
+  int cellXLo = xLo / pln->binWidth; // fix off by one things
+  if (xLo < 0 && xLo % pln->binWidth != 0) cellXLo--;
+  int cellXHi = xHi / pln->binWidth;
+  if (xHi < 0 && xHi % pln->binWidth != 0) cellXHi--;
+  int cellYLo = yLo / pln->binWidth;
+  if (yLo < 0 && yLo % pln->binWidth != 0) cellYLo--;
+  int cellYHi = yHi / pln->binWidth;
+  if (yHi < 0 && yHi % pln->binWidth != 0) cellYHi--;
 
-  /*step two: search the bins and find the points that are colliding*/
-  // note: points must be strictly within circle, not on border!
-  // iterate through each bin
-
-  plane* collides = newPlane(TARGET_PPB * Noverlaps, 1, 10);
-  point lastInsert = lowerLeft;
-
-  for (int x = lowerLeft.x; x < center.x + radius; x += pln->binWidth) {
-    for (int y = lowerLeft.y; y < center.y + radius; y++) {
-
-      point query = (point){.x = x, .y = y};
+  for (int cx = cellXLo; cx <= cellXHi; cx++) {
+    for (int cy = cellYLo; cy <= cellYHi; cy++) {
+      point query = (point){.x = cx * pln->binWidth, .y = cy * pln->binWidth};
       int queryHash = hash(*pln, query);
-      if (pln->table[queryHash][0].x > 1) { // bin is potentially inside circle and contains points, search it
 
-        printf("checking bin %d\n", queryHash);
-        for (int p = 0; p < pln->table[queryHash][0].x; p++) { // check each point in the bin
-          if (withinCircle(center, radius, query) && !pointEqual(query, lastInsert)) {
-            insertPoint(collides, query); // add it to the collision list
-            lastInsert = query;
-          }
+      for (int p = 1; p < pln->table[queryHash][0].x; p++) {
+
+        point binPoint = (point){.x = pln->table[queryHash][p].x, .y = pln->table[queryHash][p].y};
+        if (DEBUG) printf("checking point <%d,%d> in bin %d\n", binPoint.x, binPoint.y, queryHash);
+
+        if (withinCircle(center, radius, binPoint) && !pointInPlane(*collides, binPoint)) {
+          insertPoint(collides, binPoint);
         }
-
-        y += pln->binWidth;
-      } else {
-        y += pln->binWidth; // bin is empty, skip it
       }
     }
   }

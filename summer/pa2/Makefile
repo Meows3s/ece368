@@ -28,4 +28,4 @@ run: default
 	./pa2 points.txt
 
 test: default pointGen
-	valgrind --leak-check=full ./pa2 points.txt
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./pa2 points.txt

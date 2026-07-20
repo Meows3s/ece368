@@ -26,7 +26,6 @@ int main() {
 
     char input[32] = {0};
     char* args[8] = {0};
-
     if (!fgets(input, sizeof(input), stdin)) {
       return 1;
     }

@@ -20,6 +20,14 @@ plane* newPlane(int Npoints, int Nbins, int binWidth) {
   return toReturn;
 }
 
+void freePlane(plane* pln) {
+  for (int i = 0; i < pln->Nbins; i++) {
+    free(pln->table[i]); // free each bin
+  }
+  free(pln->table); // free parent array
+  free(pln);
+}
+
 // Hey future me, sorry I left you this terrible mess to debug -past me
 plane* readFile(char* filename) {
   FILE* fptr = fopen(filename, FILE_OPEN_FLAG);
@@ -67,14 +75,16 @@ plane* readFile(char* filename) {
   Nbins = MIN(pow(floor(sqrt(Nbins) + 1), 2), pow(ceil(sqrt(Nbins)), 2));
   if (Nbins == 0) Nbins = 1; // there must be at least one bin
   int binWidth = MAX(boardX, boardY) / (sqrt(Nbins));
+  if (binWidth == 0) binWidth = 1;
 
   /*initialize plane*/
-  plane* newPln = newPlane(Npoints, Nbins, binWidth);
+  plane* newPln = newPlane(0, Nbins, binWidth);
 
   for (int p = 0; p < Npoints; p++) { // loads the points from the buffer to the plane
     insertPoint(newPln, buff[p]);
   }
 
+  fclose(fptr);
   free(buff);
   return newPln;
 }

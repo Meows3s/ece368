@@ -18,8 +18,8 @@ int main(int argc, char** argv) {
   while (1) {
 
     // input parser (reused from pa1)
-    char input[32] = {0};
-    char* args[8] = {0};
+    char input[128] = {0};
+    char* args[64] = {0};
     if (!fgets(input, sizeof(input), stdin)) {
       break;
     }

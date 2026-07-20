@@ -4,7 +4,7 @@
 #include <string.h>
 
 #define FILE_OPEN_FLAG "r"
-#define TARGET_PPB 250 // target points per bin
+#define TARGET_PPB 50 // target points per bin
 #define DEBUG 0
 
 typedef struct point_ {
